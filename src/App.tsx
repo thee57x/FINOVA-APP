@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { 
-  db, 
+  db, auth,
   collection, query, where, onSnapshot, addDoc, updateDoc, deleteDoc, doc, setDoc, getDoc,
+  createUserWithEmailAndPassword, signInWithEmailAndPassword, sendPasswordResetEmail, signOut, onAuthStateChanged, updateProfile,
   OperationType, handleFirestoreError
 } from './firebase';
 import { UserProfile, Expense, Budget, Income, CATEGORIES, INCOME_SOURCES, CURRENCIES, Currency } from './types';
@@ -14,11 +15,12 @@ import { format, startOfMonth, endOfMonth, isWithinInterval, parseISO, subMonths
 import { 
   Plus, Trash2, PieChart as PieIcon, LayoutDashboard, Settings, LogOut, 
   TrendingUp, Wallet, Sparkles, ChevronRight, AlertCircle, Download, 
-  ArrowUpRight, ArrowDownRight, FileText, Table, X
+  ArrowUpRight, ArrowDownRight, FileText, Table, X, Mail, Lock, User as UserIcon, ArrowRight
 } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import { jsPDF } from 'jspdf';
 import 'jspdf-autotable';
+import Swal from 'sweetalert2';
 
 // --- Components ---
 
@@ -78,23 +80,52 @@ const Toast: React.FC<{ message: string; type: 'error' | 'warning' | 'success'; 
   );
 };
 
-const Auth: React.FC<{ onLogin: (user: UserProfile) => void; setToast: (t: any) => void }> = ({ onLogin, setToast }) => {
+const Auth: React.FC = () => {
+  const [isLogin, setIsLogin] = useState(true);
+  const [isForgot, setIsForgot] = useState(false);
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [displayName, setDisplayName] = useState('');
+  const [loading, setLoading] = useState(false);
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (password === 'admin123') {
-      const adminUser: UserProfile = {
-        uid: 'admin-user',
-        displayName: 'Admin User',
-        email: 'admin@local.host',
-        photoURL: '',
-        createdAt: new Date().toISOString(),
-      };
-      onLogin(adminUser);
-      localStorage.setItem('fintrack_user', JSON.stringify(adminUser));
-    } else {
-      setToast({ message: "Invalid password.", type: 'error' });
+    setLoading(true);
+    try {
+      if (isForgot) {
+        await sendPasswordResetEmail(auth, email);
+        Swal.fire({
+          icon: 'success',
+          title: 'Reset Email Sent',
+          text: 'Check your inbox for password reset instructions.',
+          confirmButtonColor: '#0ea5e9'
+        });
+        setIsForgot(false);
+      } else if (isLogin) {
+        await signInWithEmailAndPassword(auth, email, password);
+      } else {
+        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+        await updateProfile(userCredential.user, { displayName });
+        
+        // Create user profile in Firestore
+        await setDoc(doc(db, 'users', userCredential.user.uid), {
+          uid: userCredential.user.uid,
+          displayName,
+          email,
+          photoURL: '',
+          createdAt: new Date().toISOString(),
+          onboarded: false
+        });
+      }
+    } catch (error: any) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Authentication Error',
+        text: error.message,
+        confirmButtonColor: '#ef4444'
+      });
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -106,34 +137,170 @@ const Auth: React.FC<{ onLogin: (user: UserProfile) => void; setToast: (t: any) 
         </div>
         <h1 className="text-3xl font-bold tracking-tight">FINOVA</h1>
         <p className="text-slate-500">
-          Take control of your finances with AI-powered categorization and real-time budget tracking.
+          {isForgot ? 'Reset your password' : isLogin ? 'Welcome back! Log in to manage your finances.' : 'Start your financial journey with FINOVA.'}
         </p>
         
-        <form onSubmit={handleLogin} className="space-y-4 animate-in fade-in slide-in-from-top-2">
-          <div className="text-left">
-            <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Password</label>
-            <input 
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="Enter admin123"
-              className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-sky-500 outline-none transition-all"
-              autoFocus
-            />
+        <form onSubmit={handleAuth} className="space-y-4 text-left">
+          {!isLogin && !isForgot && (
+            <div className="space-y-1">
+              <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">Full Name</label>
+              <div className="relative">
+                <UserIcon className="absolute left-3 top-3 w-5 h-5 text-slate-400" />
+                <input 
+                  type="text"
+                  required
+                  value={displayName}
+                  onChange={(e) => setDisplayName(e.target.value)}
+                  className="w-full pl-10 pr-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-sky-500 outline-none transition-all"
+                  placeholder="John Doe"
+                />
+              </div>
+            </div>
+          )}
+          
+          <div className="space-y-1">
+            <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">Email Address</label>
+            <div className="relative">
+              <Mail className="absolute left-3 top-3 w-5 h-5 text-slate-400" />
+              <input 
+                type="email"
+                required
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="w-full pl-10 pr-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-sky-500 outline-none transition-all"
+                placeholder="you@example.com"
+              />
+            </div>
           </div>
+
+          {!isForgot && (
+            <div className="space-y-1">
+              <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">Password</label>
+              <div className="relative">
+                <Lock className="absolute left-3 top-3 w-5 h-5 text-slate-400" />
+                <input 
+                  type="password"
+                  required
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="w-full pl-10 pr-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-sky-500 outline-none transition-all"
+                  placeholder="••••••••"
+                />
+              </div>
+            </div>
+          )}
+
+          {isLogin && !isForgot && (
+            <div className="text-right">
+              <button 
+                type="button"
+                onClick={() => setIsForgot(true)}
+                className="text-xs font-semibold text-sky-600 hover:underline"
+              >
+                Forgot Password?
+              </button>
+            </div>
+          )}
+
           <button 
             type="submit"
-            className="w-full btn-primary py-3 font-semibold shadow-lg shadow-sky-100"
+            disabled={loading}
+            className="w-full btn-primary py-3 font-semibold shadow-lg shadow-sky-100 disabled:opacity-50"
           >
-            Enter Application
+            {loading ? 'Processing...' : isForgot ? 'Send Reset Link' : isLogin ? 'Sign In' : 'Create Account'}
           </button>
         </form>
+
+        <div className="pt-4 border-t border-slate-100">
+          {isForgot ? (
+            <button 
+              onClick={() => setIsForgot(false)}
+              className="text-sm text-slate-500 hover:text-sky-600 font-medium"
+            >
+              Back to Login
+            </button>
+          ) : (
+            <p className="text-sm text-slate-500">
+              {isLogin ? "Don't have an account?" : "Already have an account?"}{' '}
+              <button 
+                onClick={() => setIsLogin(!isLogin)}
+                className="text-sky-600 font-bold hover:underline"
+              >
+                {isLogin ? 'Sign Up' : 'Log In'}
+              </button>
+            </p>
+          )}
+        </div>
       </div>
     </div>
   );
 };
 
-const Sidebar: React.FC<{ activeTab: string; setActiveTab: (tab: string) => void; user: UserProfile; currency: string; setCurrency: (c: string) => void }> = ({ activeTab, setActiveTab, user, currency, setCurrency }) => {
+const Onboarding: React.FC<{ onComplete: () => void }> = ({ onComplete }) => {
+  const [step, setStep] = useState(1);
+
+  const steps = [
+    {
+      title: "Welcome to FINOVA",
+      description: "Your personal AI-powered financial assistant. Let's get you set up in 3 easy steps.",
+      icon: Sparkles,
+      color: "text-sky-600 bg-sky-100"
+    },
+    {
+      title: "Track with Ease",
+      description: "Add your expenses and let our AI categorize them for you. No more manual sorting.",
+      icon: TrendingUp,
+      color: "text-emerald-600 bg-emerald-100"
+    },
+    {
+      title: "Smart Budgets",
+      description: "Set monthly limits and get real-time alerts when you're close to exceeding them.",
+      icon: Wallet,
+      color: "text-amber-600 bg-amber-100"
+    }
+  ];
+
+  const currentStep = steps[step - 1];
+
+  return (
+    <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center z-[100] p-4">
+      <div className="card max-w-lg w-full text-center space-y-8 animate-in zoom-in-95 duration-300">
+        <div className={`w-20 h-20 rounded-3xl flex items-center justify-center mx-auto ${currentStep.color}`}>
+          <currentStep.icon className="w-10 h-10" />
+        </div>
+        
+        <div className="space-y-2">
+          <h2 className="text-3xl font-bold tracking-tight">{currentStep.title}</h2>
+          <p className="text-slate-500 text-lg leading-relaxed">
+            {currentStep.description}
+          </p>
+        </div>
+
+        <div className="flex items-center justify-center gap-2">
+          {steps.map((_, i) => (
+            <div 
+              key={i} 
+              className={`h-2 rounded-full transition-all duration-300 ${i + 1 === step ? 'w-8 bg-sky-600' : 'w-2 bg-slate-200'}`} 
+            />
+          ))}
+        </div>
+
+        <button 
+          onClick={() => {
+            if (step < steps.length) setStep(step + 1);
+            else onComplete();
+          }}
+          className="w-full btn-primary py-4 text-lg font-bold flex items-center justify-center gap-2 group"
+        >
+          {step < steps.length ? 'Next Step' : 'Get Started'}
+          <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+        </button>
+      </div>
+    </div>
+  );
+};
+
+const Sidebar: React.FC<{ activeTab: string; setActiveTab: (tab: string) => void; user: UserProfile; currency: string; setCurrency: (c: string) => void; onSignOut: () => void }> = ({ activeTab, setActiveTab, user, currency, setCurrency, onSignOut }) => {
   const navItems = [
     { id: 'dashboard', icon: LayoutDashboard, label: 'Dashboard' },
     { id: 'expenses', icon: TrendingUp, label: 'Expenses' },
@@ -192,10 +359,7 @@ const Sidebar: React.FC<{ activeTab: string; setActiveTab: (tab: string) => void
             </div>
           </div>
           <button 
-            onClick={() => {
-              localStorage.removeItem('fintrack_user');
-              window.location.reload();
-            }}
+            onClick={onSignOut}
             className="w-full flex items-center gap-3 px-4 py-2 text-slate-500 hover:text-danger transition-colors rounded-lg hover:bg-red-50"
           >
             <LogOut className="w-5 h-5" />
@@ -249,6 +413,7 @@ const Sidebar: React.FC<{ activeTab: string; setActiveTab: (tab: string) => void
 
 export default function App() {
   const [user, setUser] = useState<UserProfile | null>(null);
+  const [onboarded, setOnboarded] = useState(true);
   const [activeTab, setActiveTab] = useState('dashboard');
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [budgets, setBudgets] = useState<Budget[]>([]);
@@ -276,6 +441,63 @@ export default function App() {
   };
 
   useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+      if (firebaseUser) {
+        const userDoc = await getDoc(doc(db, 'users', firebaseUser.uid));
+        const userData = userDoc.data();
+        
+        setUser({
+          uid: firebaseUser.uid,
+          displayName: firebaseUser.displayName || 'User',
+          email: firebaseUser.email || '',
+          photoURL: firebaseUser.photoURL || '',
+          createdAt: userData?.createdAt || new Date().toISOString()
+        });
+        setOnboarded(userData?.onboarded ?? true);
+        if (userData?.currency) setCurrencyCode(userData.currency);
+      } else {
+        setUser(null);
+      }
+      setLoading(false);
+    });
+
+    return () => unsubscribe();
+  }, []);
+
+  const completeOnboarding = async () => {
+    if (!user) return;
+    try {
+      await updateDoc(doc(db, 'users', user.uid), { onboarded: true });
+      setOnboarded(true);
+      Swal.fire({
+        icon: 'success',
+        title: 'Ready to go!',
+        text: 'Your account is set up. Welcome to FINOVA!',
+        timer: 2000,
+        showConfirmButton: false
+      });
+    } catch (error) {
+      console.error("Error updating onboarding status:", error);
+    }
+  };
+
+  const handleSignOut = async () => {
+    const result = await Swal.fire({
+      title: 'Sign Out?',
+      text: 'Are you sure you want to log out?',
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonColor: '#0ea5e9',
+      cancelButtonColor: '#94a3b8',
+      confirmButtonText: 'Yes, sign out'
+    });
+
+    if (result.isConfirmed) {
+      await signOut(auth);
+    }
+  };
+
+  useEffect(() => {
     const fetchRates = async () => {
       try {
         const response = await fetch('https://open.er-api.com/v6/latest/NGN');
@@ -298,25 +520,11 @@ export default function App() {
     return () => clearInterval(interval);
   }, []);
 
-  useEffect(() => {
-    const savedUser = localStorage.getItem('fintrack_user');
-    if (savedUser) {
-      const u = JSON.parse(savedUser);
-      setUser(u);
-      if (u.currency) setCurrencyCode(u.currency);
-    }
-    setLoading(false);
-  }, []);
-
   const handleSetCurrency = async (code: string) => {
     setCurrencyCode(code);
     if (user) {
-      const updatedUser = { ...user, currency: code };
-      setUser(updatedUser);
-      localStorage.setItem('fintrack_user', JSON.stringify(updatedUser));
-      // Optionally update in Firestore if user profile doc exists
       try {
-        await setDoc(doc(db, 'users', user.uid), updatedUser, { merge: true });
+        await setDoc(doc(db, 'users', user.uid), { currency: code }, { merge: true });
       } catch (e) {
         console.error("Failed to sync currency preference", e);
       }
@@ -351,13 +559,27 @@ export default function App() {
     };
   }, [user]);
 
-  if (loading) return <div className="flex items-center justify-center h-screen">Loading...</div>;
-  if (!user) return <Auth onLogin={setUser} setToast={setToast} />;
+  if (loading) return (
+    <div className="flex flex-col items-center justify-center h-screen space-y-4">
+      <div className="w-12 h-12 border-4 border-sky-600 border-t-transparent rounded-full animate-spin" />
+      <p className="text-slate-500 font-medium animate-pulse">Initializing FINOVA...</p>
+    </div>
+  );
+
+  if (!user) return <Auth />;
 
   return (
     <ErrorBoundary>
+      {!onboarded && <Onboarding onComplete={completeOnboarding} />}
       <div className="flex flex-col md:flex-row min-h-screen bg-slate-50">
-        <Sidebar activeTab={activeTab} setActiveTab={setActiveTab} user={user} currency={currencyCode} setCurrency={handleSetCurrency} />
+        <Sidebar 
+          activeTab={activeTab} 
+          setActiveTab={setActiveTab} 
+          user={user} 
+          currency={currencyCode} 
+          setCurrency={handleSetCurrency} 
+          onSignOut={handleSignOut}
+        />
         <main className="flex-1 p-4 md:p-8 overflow-y-auto min-w-0 pb-20 md:pb-8">
           {activeTab === 'dashboard' && <Dashboard expenses={expenses} budgets={budgets} incomes={incomes} formatCurrency={formatCurrency} />}
           {activeTab === 'expenses' && <ExpensesView expenses={expenses} userId={user.uid} budgets={budgets} setToast={setToast} formatCurrency={formatCurrency} />}
@@ -802,8 +1024,8 @@ const IncomeView: React.FC<{ incomes: Income[]; userId: string; formatCurrency: 
         </div>
       )}
 
-      <div className="card p-0 overflow-hidden">
-        <table className="w-full text-left">
+      <div className="card p-0 overflow-hidden overflow-x-auto">
+        <table className="w-full text-left min-w-[600px]">
           <thead className="bg-slate-50 border-b border-slate-200">
             <tr>
               <th className="px-6 py-4 text-sm font-semibold text-slate-600">Date</th>
