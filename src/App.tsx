@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { 
   db, auth,
   collection, query, where, onSnapshot, addDoc, updateDoc, deleteDoc, doc, setDoc, getDoc,
-  createUserWithEmailAndPassword, signInWithEmailAndPassword, sendPasswordResetEmail, signOut, onAuthStateChanged, updateProfile,
+  createUserWithEmailAndPassword, signInWithEmailAndPassword, sendPasswordResetEmail, signOut, onAuthStateChanged, updateProfile, updateEmail, updatePassword,
   OperationType, handleFirestoreError
 } from './firebase';
 import { UserProfile, Expense, Budget, Income, CATEGORIES, INCOME_SOURCES, CURRENCIES, Currency } from './types';
@@ -15,7 +15,7 @@ import { format, startOfMonth, endOfMonth, isWithinInterval, parseISO, subMonths
 import { 
   Plus, Trash2, PieChart as PieIcon, LayoutDashboard, Settings, LogOut, 
   TrendingUp, Wallet, Sparkles, ChevronRight, AlertCircle, Download, 
-  ArrowUpRight, ArrowDownRight, FileText, Table, X, Mail, Lock, User as UserIcon, ArrowRight
+  ArrowUpRight, ArrowDownRight, FileText, Table, X, Mail, Lock, User as UserIcon, ArrowRight, Camera
 } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import { jsPDF } from 'jspdf';
@@ -307,6 +307,7 @@ const Sidebar: React.FC<{ activeTab: string; setActiveTab: (tab: string) => void
     { id: 'income', icon: ArrowUpRight, label: 'Income' },
     { id: 'budgets', icon: Wallet, label: 'Budgets' },
     { id: 'ai', icon: Sparkles, label: 'AI Advice' },
+    { id: 'profile', icon: UserIcon, label: 'Profile' },
   ];
 
   return (
@@ -350,8 +351,12 @@ const Sidebar: React.FC<{ activeTab: string; setActiveTab: (tab: string) => void
           </div>
 
           <div className="flex items-center gap-3 px-2 mb-4">
-            <div className="w-10 h-10 rounded-full bg-sky-100 flex items-center justify-center text-sky-700 font-bold border border-slate-200">
-              {user.displayName?.charAt(0) || 'U'}
+            <div className="w-10 h-10 rounded-full bg-sky-100 flex items-center justify-center text-sky-700 font-bold border border-slate-200 overflow-hidden">
+              {user.photoURL ? (
+                <img src={user.photoURL} alt="Profile" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+              ) : (
+                user.displayName?.charAt(0) || 'U'
+              )}
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-sm font-medium truncate">{user.displayName}</p>
@@ -384,8 +389,12 @@ const Sidebar: React.FC<{ activeTab: string; setActiveTab: (tab: string) => void
               <option key={c.code} value={c.code}>{c.code}</option>
             ))}
           </select>
-          <div className="w-8 h-8 rounded-full bg-sky-100 flex items-center justify-center text-sky-700 font-bold border border-slate-200 text-xs">
-            {user.displayName?.charAt(0) || 'U'}
+          <div className="w-8 h-8 rounded-full bg-sky-100 flex items-center justify-center text-sky-700 font-bold border border-slate-200 text-xs overflow-hidden">
+            {user.photoURL ? (
+              <img src={user.photoURL} alt="Profile" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+            ) : (
+              user.displayName?.charAt(0) || 'U'
+            )}
           </div>
         </div>
       </header>
@@ -586,6 +595,7 @@ export default function App() {
           {activeTab === 'income' && <IncomeView incomes={incomes} userId={user.uid} formatCurrency={formatCurrency} />}
           {activeTab === 'budgets' && <BudgetsView budgets={budgets} userId={user.uid} formatCurrency={formatCurrency} />}
           {activeTab === 'ai' && <AIAdviceView expenses={expenses} budgets={budgets} currencyCode={currencyCode} currencySymbol={currency.symbol} />}
+          {activeTab === 'profile' && <ProfileView user={user} setUser={setUser} />}
         </main>
         {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
       </div>
@@ -1249,6 +1259,231 @@ const AIAdviceView: React.FC<{ expenses: Expense[]; budgets: Budget[]; currencyC
             Set monthly limits for each category to receive real-time warnings when you're close to exceeding them.
           </p>
         </div>
+      </div>
+    </div>
+  );
+};
+
+const ProfileView: React.FC<{ user: UserProfile; setUser: (u: UserProfile) => void }> = ({ user, setUser }) => {
+  const [displayName, setDisplayName] = useState(user.displayName);
+  const [photoURL, setPhotoURL] = useState(user.photoURL);
+  const [email, setEmail] = useState(user.email);
+  const [newPassword, setNewPassword] = useState('');
+  const [loading, setLoading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (file.size > 500000) { // 500KB limit for base64
+        Swal.fire({
+          icon: 'warning',
+          title: 'File too large',
+          text: 'Please choose an image smaller than 500KB for better performance.',
+          confirmButtonColor: '#f59e0b'
+        });
+        return;
+      }
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setPhotoURL(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleUpdateProfile = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    try {
+      const currentUser = auth.currentUser;
+      if (!currentUser) throw new Error("No user logged in");
+
+      // Update Firebase Auth Profile
+      // Firebase Auth photoURL has a 2048 character limit. 
+      // Base64 strings for images are much longer, so we only update Auth if it's a standard URL.
+      // We still store the base64 string in Firestore which is where the app reads it from.
+      const isBase64 = photoURL?.startsWith('data:image');
+      await updateProfile(currentUser, { 
+        displayName, 
+        photoURL: isBase64 ? currentUser.photoURL : photoURL 
+      });
+
+      // Update Email if changed
+      if (email !== user.email) {
+        await updateEmail(currentUser, email);
+      }
+
+      // Update Password if provided
+      if (newPassword) {
+        await updatePassword(currentUser, newPassword);
+        setNewPassword('');
+      }
+
+      // Update Firestore
+      const updatedUser: UserProfile = { ...user, displayName, photoURL, email };
+      await setDoc(doc(db, 'users', user.uid), updatedUser, { merge: true });
+      
+      setUser(updatedUser);
+
+      Swal.fire({
+        icon: 'success',
+        title: 'Profile Updated',
+        text: 'Your profile information has been successfully updated.',
+        confirmButtonColor: '#0ea5e9'
+      });
+    } catch (error: any) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Update Failed',
+        text: error.message,
+        confirmButtonColor: '#ef4444'
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="max-w-2xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4">
+      <header className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight flex items-center gap-3">
+            <UserIcon className="w-8 h-8 text-sky-500" />
+            Profile Settings
+          </h1>
+          <p className="text-slate-500 text-lg">Manage your account information and security.</p>
+        </div>
+      </header>
+
+      <div className="card space-y-8">
+        <div className="flex flex-col md:flex-row items-center gap-8 pb-8 border-b border-slate-100">
+          <div className="relative group">
+            <div className="w-32 h-32 rounded-full bg-sky-100 flex items-center justify-center text-sky-700 font-bold border-4 border-white shadow-xl text-4xl overflow-hidden relative">
+              {photoURL ? (
+                <img src={photoURL} alt="Profile" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+              ) : (
+                displayName?.charAt(0) || 'U'
+              )}
+              <button 
+                onClick={() => fileInputRef.current?.click()}
+                className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+              >
+                <Camera className="w-8 h-8 text-white" />
+              </button>
+            </div>
+            <input 
+              type="file" 
+              ref={fileInputRef} 
+              onChange={handleFileChange} 
+              className="hidden" 
+              accept="image/*"
+            />
+          </div>
+          <div className="flex-1 text-center md:text-left">
+            <h2 className="text-2xl font-bold">{displayName || 'User'}</h2>
+            <p className="text-slate-500">{email}</p>
+            <p className="text-xs text-slate-400 mt-1 uppercase tracking-widest font-bold">
+              Member since {new Date(user.createdAt).toLocaleDateString()}
+            </p>
+          </div>
+        </div>
+
+        <form onSubmit={handleUpdateProfile} className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="space-y-2">
+              <label className="text-sm font-bold text-slate-500 uppercase tracking-wider">Full Name</label>
+              <div className="relative">
+                <UserIcon className="absolute left-3 top-3 w-5 h-5 text-slate-400" />
+                <input 
+                  type="text"
+                  value={displayName}
+                  onChange={(e) => setDisplayName(e.target.value)}
+                  className="w-full pl-10 pr-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-sky-500 outline-none transition-all"
+                  placeholder="Your Name"
+                />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-sm font-bold text-slate-500 uppercase tracking-wider">Email Address</label>
+              <div className="relative">
+                <Mail className="absolute left-3 top-3 w-5 h-5 text-slate-400" />
+                <input 
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="w-full pl-10 pr-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-sky-500 outline-none transition-all"
+                  placeholder="Email"
+                />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-sm font-bold text-slate-500 uppercase tracking-wider">Profile Picture URL</label>
+              <div className="flex gap-2">
+                <div className="relative flex-1">
+                  <Sparkles className="absolute left-3 top-3 w-5 h-5 text-slate-400" />
+                  <input 
+                    type="url"
+                    value={photoURL}
+                    onChange={(e) => setPhotoURL(e.target.value)}
+                    className="w-full pl-10 pr-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-sky-500 outline-none transition-all"
+                    placeholder="https://example.com/photo.jpg"
+                  />
+                </div>
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  className="px-4 py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl transition-colors flex items-center gap-2 font-medium"
+                  title="Upload from computer"
+                >
+                  <Camera className="w-5 h-5" />
+                  <span className="hidden sm:inline">Upload</span>
+                </button>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-sm font-bold text-slate-500 uppercase tracking-wider">New Password (Optional)</label>
+              <div className="relative">
+                <Lock className="absolute left-3 top-3 w-5 h-5 text-slate-400" />
+                <input 
+                  type="password"
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  className="w-full pl-10 pr-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-sky-500 outline-none transition-all"
+                  placeholder="Leave blank to keep current"
+                />
+              </div>
+            </div>
+          </div>
+
+          <div className="pt-6 border-t border-slate-100 flex justify-end">
+            <button 
+              type="submit"
+              disabled={loading}
+              className="btn-primary px-8 py-3 font-bold shadow-lg shadow-sky-100 disabled:opacity-50 flex items-center gap-2"
+            >
+              {loading ? (
+                <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+              ) : (
+                <Settings className="w-5 h-5" />
+              )}
+              Save Profile Changes
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <div className="card bg-amber-50 border-amber-100">
+        <h3 className="font-bold text-amber-800 flex items-center gap-2 mb-2">
+          <AlertCircle className="w-5 h-5" />
+          Security Note
+        </h3>
+        <p className="text-sm text-amber-700">
+          Updating your email or password may require you to re-authenticate for security reasons. If the update fails, please log out and log back in before trying again.
+        </p>
       </div>
     </div>
   );
