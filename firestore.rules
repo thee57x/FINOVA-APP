@@ -1,0 +1,85 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // ===============================================================
+    // Helper Functions
+    // ===============================================================
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    function isDocOwner() {
+      return isAuthenticated() && request.auth.uid == resource.data.userId;
+    }
+
+    function isNewDocOwner() {
+      return isAuthenticated() && request.auth.uid == request.resource.data.userId;
+    }
+
+    function hasRequiredFields(fields) {
+      return request.resource.data.keys().hasAll(fields);
+    }
+
+    function hasOnlyAllowedFields(fields) {
+      return request.resource.data.keys().hasOnly(fields);
+    }
+
+    function isValidString(field, minLen, maxLen) {
+      return request.resource.data[field] is string &&
+             request.resource.data[field].size() >= minLen &&
+             request.resource.data[field].size() <= maxLen;
+    }
+
+    function isValidNumber(field, minVal) {
+      return request.resource.data[field] is number &&
+             request.resource.data[field] >= minVal;
+    }
+
+    // ===============================================================
+    // Domain Validators
+    // ===============================================================
+    function isValidUser(data) {
+      return data.uid is string && data.uid == request.auth.uid &&
+             data.email is string && data.email.size() > 0 &&
+             data.displayName is string && data.displayName.size() < 100;
+    }
+
+    function isValidExpense(data) {
+      return data.userId == request.auth.uid &&
+             data.amount is number && data.amount >= 0 &&
+             data.category is string && data.category.size() > 0 &&
+             data.description is string && data.description.size() < 500 &&
+             data.date is string; // ISO 8601 format
+    }
+
+    function isValidBudget(data) {
+      return data.userId == request.auth.uid &&
+             data.category is string && data.category.size() > 0 &&
+             data.limit is number && data.limit >= 0 &&
+             data.month is int && data.month >= 1 && data.month <= 12 &&
+             data.year is int && data.year >= 2000;
+    }
+
+    function isValidIncome(data) {
+      return data.userId == request.auth.uid &&
+             data.amount is number && data.amount >= 0 &&
+             data.source is string && data.source.size() > 0 &&
+             data.description is string && data.description.size() < 500 &&
+             data.date is string;
+    }
+
+    // ===============================================================
+    // Rules
+    // ===============================================================
+    
+    // Allow all access for the simple login approach
+    // WARNING: This is for prototype/simple login purposes only.
+    match /{document=**} {
+      allow read, write: if true;
+    }
+  }
+}

@@ -1,0 +1,77 @@
+{
+  "entities": {
+    "User": {
+      "title": "User Profile",
+      "description": "Stores user settings and profile information.",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string", "description": "Unique user ID from Firebase Auth." },
+        "displayName": { "type": "string", "description": "User's display name." },
+        "email": { "type": "string", "format": "email", "description": "User's email address." },
+        "photoURL": { "type": "string", "format": "uri", "description": "User's profile picture URL." },
+        "createdAt": { "type": "string", "format": "date-time", "description": "Account creation timestamp." }
+      },
+      "required": ["uid", "email"]
+    },
+    "Expense": {
+      "title": "Expense Record",
+      "description": "A single expense entry.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Unique expense ID." },
+        "userId": { "type": "string", "description": "ID of the user who owns this expense." },
+        "amount": { "type": "number", "description": "Amount spent." },
+        "category": { "type": "string", "description": "Expense category (e.g., Food, Transport)." },
+        "date": { "type": "string", "format": "date-time", "description": "Date of the expense." },
+        "description": { "type": "string", "description": "Brief description of the expense." },
+        "aiCategorized": { "type": "boolean", "description": "Whether this was categorized by AI." }
+      },
+      "required": ["userId", "amount", "category", "date"]
+    },
+    "Budget": {
+      "title": "Monthly Budget",
+      "description": "Budget limit for a specific category in a given month.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string", "description": "ID of the user who owns this budget." },
+        "category": { "type": "string", "description": "Category name." },
+        "limit": { "type": "number", "description": "Budget limit amount." },
+        "month": { "type": "integer", "description": "Month (1-12)." },
+        "year": { "type": "integer", "description": "Year (e.g., 2026)." }
+      },
+      "required": ["userId", "category", "limit", "month", "year"]
+    },
+    "Income": {
+      "title": "Income Record",
+      "description": "A single income entry.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Unique income ID." },
+        "userId": { "type": "string", "description": "ID of the user who owns this income." },
+        "amount": { "type": "number", "description": "Amount received." },
+        "source": { "type": "string", "description": "Income source (e.g., Salary, Freelance)." },
+        "date": { "type": "string", "format": "date-time", "description": "Date of the income." },
+        "description": { "type": "string", "description": "Brief description of the income." }
+      },
+      "required": ["userId", "amount", "source", "date"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "User",
+      "description": "User profile documents."
+    },
+    "/expenses/{expenseId}": {
+      "schema": "Expense",
+      "description": "Global expenses collection (filtered by userId)."
+    },
+    "/budgets/{budgetId}": {
+      "schema": "Budget",
+      "description": "Global budgets collection (filtered by userId)."
+    },
+    "/incomes/{incomeId}": {
+      "schema": "Income",
+      "description": "Global incomes collection (filtered by userId)."
+    }
+  }
+}
