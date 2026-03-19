@@ -5,6 +5,7 @@ export interface UserProfile {
   photoURL: string | null;
   createdAt: string;
   currency?: string;
+  onboarded?: boolean;
 }
 
 export interface Currency {

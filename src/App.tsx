@@ -19,7 +19,7 @@ import {
 } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import { jsPDF } from 'jspdf';
-import 'jspdf-autotable';
+import autoTable from 'jspdf-autotable';
 import Swal from 'sweetalert2';
 
 // --- Components ---
@@ -453,13 +453,13 @@ export default function App() {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       if (firebaseUser) {
         const userDoc = await getDoc(doc(db, 'users', firebaseUser.uid));
-        const userData = userDoc.data();
+        const userData = userDoc.data() as UserProfile | undefined;
         
         setUser({
           uid: firebaseUser.uid,
-          displayName: firebaseUser.displayName || 'User',
-          email: firebaseUser.email || '',
-          photoURL: firebaseUser.photoURL || '',
+          displayName: userData?.displayName || firebaseUser.displayName || 'User',
+          email: userData?.email || firebaseUser.email || '',
+          photoURL: userData?.photoURL || firebaseUser.photoURL || '',
           createdAt: userData?.createdAt || new Date().toISOString()
         });
         setOnboarded(userData?.onboarded ?? true);
@@ -665,7 +665,7 @@ const Dashboard: React.FC<{ expenses: Expense[]; budgets: Budget[]; incomes: Inc
       ...incomes.map(i => [format(new Date(i.date), 'yyyy-MM-dd'), 'Income', i.source, i.description, formatCurrency(i.amount)])
     ];
 
-    (doc as any).autoTable({
+    autoTable(doc, {
       head: [['Date', 'Type', 'Category', 'Description', 'Amount']],
       body: tableData,
       startY: 30,
@@ -1272,6 +1272,13 @@ const ProfileView: React.FC<{ user: UserProfile; setUser: (u: UserProfile) => vo
   const [loading, setLoading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  // Sync internal state if user prop changes (e.g. from background update)
+  useEffect(() => {
+    setDisplayName(user.displayName);
+    setPhotoURL(user.photoURL);
+    setEmail(user.email);
+  }, [user.uid]); // Only sync if the user ID is the same, or if it changes
+
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
@@ -1425,12 +1432,22 @@ const ProfileView: React.FC<{ user: UserProfile; setUser: (u: UserProfile) => vo
                 <div className="relative flex-1">
                   <Sparkles className="absolute left-3 top-3 w-5 h-5 text-slate-400" />
                   <input 
-                    type="url"
-                    value={photoURL}
+                    type="text"
+                    value={photoURL?.startsWith('data:image') ? 'Local Image Uploaded' : photoURL}
                     onChange={(e) => setPhotoURL(e.target.value)}
                     className="w-full pl-10 pr-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-sky-500 outline-none transition-all"
                     placeholder="https://example.com/photo.jpg"
+                    readOnly={photoURL?.startsWith('data:image')}
                   />
+                  {photoURL?.startsWith('data:image') && (
+                    <button
+                      type="button"
+                      onClick={() => setPhotoURL('')}
+                      className="absolute right-3 top-3 text-xs font-bold text-sky-600 hover:text-sky-700"
+                    >
+                      Clear
+                    </button>
+                  )}
                 </div>
                 <button
                   type="button"
