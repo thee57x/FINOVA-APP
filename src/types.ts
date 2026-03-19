@@ -6,6 +6,8 @@ export interface UserProfile {
   createdAt: string;
   currency?: string;
   onboarded?: boolean;
+  theme?: 'light' | 'dark';
+  showRecentTransactions?: boolean;
 }
 
 export interface Currency {
