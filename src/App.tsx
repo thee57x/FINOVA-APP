@@ -15,7 +15,7 @@ import { format, startOfMonth, endOfMonth, isWithinInterval, parseISO, subMonths
 import { 
   Plus, Trash2, PieChart as PieIcon, LayoutDashboard, Settings, LogOut, 
   TrendingUp, Wallet, Sparkles, ChevronRight, AlertCircle, Download, 
-  ArrowUpRight, ArrowDownRight, FileText, Table, X, Mail, Lock, User as UserIcon, ArrowRight, Camera
+  ArrowUpRight, ArrowDownRight, FileText, Table, X, Mail, Lock, User as UserIcon, ArrowRight, Camera, History
 } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import { jsPDF } from 'jspdf';
@@ -67,7 +67,7 @@ const Toast: React.FC<{ message: string; type: 'error' | 'warning' | 'success'; 
     return () => clearTimeout(timer);
   }, [onClose]);
 
-  const bg = type === 'error' ? 'bg-red-500' : type === 'warning' ? 'bg-amber-500' : 'bg-emerald-500';
+  const bg = type === 'error' ? 'bg-red-500 dark:bg-red-600' : type === 'warning' ? 'bg-amber-500 dark:bg-amber-600' : 'bg-emerald-500 dark:bg-emerald-600';
 
   return (
     <div className={`fixed bottom-4 right-4 ${bg} text-white px-6 py-3 rounded-xl shadow-lg flex items-center gap-3 animate-in slide-in-from-bottom-4 z-50`}>
@@ -130,28 +130,28 @@ const Auth: React.FC = () => {
   };
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-slate-50 p-4">
+    <div className="flex flex-col items-center justify-center min-h-screen bg-bg p-4">
       <div className="card max-w-md w-full text-center space-y-6">
-        <div className="w-20 h-20 bg-sky-100 rounded-2xl flex items-center justify-center mx-auto">
+        <div className="w-20 h-20 bg-sky-100 dark:bg-sky-900/30 rounded-2xl flex items-center justify-center mx-auto">
           <Wallet className="w-10 h-10 text-sky-600" />
         </div>
-        <h1 className="text-3xl font-bold tracking-tight">FINOVA</h1>
-        <p className="text-slate-500">
+        <h1 className="text-3xl font-bold tracking-tight text-text-primary">FINOVA</h1>
+        <p className="text-text-muted">
           {isForgot ? 'Reset your password' : isLogin ? 'Welcome back! Log in to manage your finances.' : 'Start your financial journey with FINOVA.'}
         </p>
         
         <form onSubmit={handleAuth} className="space-y-4 text-left">
           {!isLogin && !isForgot && (
             <div className="space-y-1">
-              <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">Full Name</label>
+              <label className="text-xs font-bold text-text-muted uppercase tracking-wider">Full Name</label>
               <div className="relative">
-                <UserIcon className="absolute left-3 top-3 w-5 h-5 text-slate-400" />
+                <UserIcon className="absolute left-3 top-3 w-5 h-5 text-text-muted" />
                 <input 
                   type="text"
                   required
                   value={displayName}
                   onChange={(e) => setDisplayName(e.target.value)}
-                  className="w-full pl-10 pr-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-sky-500 outline-none transition-all"
+                  className="w-full pl-10 pr-4 py-3 border border-border bg-card text-text-primary rounded-xl focus:ring-2 focus:ring-sky-500 outline-none transition-all"
                   placeholder="John Doe"
                 />
               </div>
@@ -159,15 +159,15 @@ const Auth: React.FC = () => {
           )}
           
           <div className="space-y-1">
-            <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">Email Address</label>
+            <label className="text-xs font-bold text-text-muted uppercase tracking-wider">Email Address</label>
             <div className="relative">
-              <Mail className="absolute left-3 top-3 w-5 h-5 text-slate-400" />
+              <Mail className="absolute left-3 top-3 w-5 h-5 text-text-muted" />
               <input 
                 type="email"
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full pl-10 pr-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-sky-500 outline-none transition-all"
+                className="w-full pl-10 pr-4 py-3 border border-border bg-card text-text-primary rounded-xl focus:ring-2 focus:ring-sky-500 outline-none transition-all"
                 placeholder="you@example.com"
               />
             </div>
@@ -175,15 +175,15 @@ const Auth: React.FC = () => {
 
           {!isForgot && (
             <div className="space-y-1">
-              <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">Password</label>
+              <label className="text-xs font-bold text-text-muted uppercase tracking-wider">Password</label>
               <div className="relative">
-                <Lock className="absolute left-3 top-3 w-5 h-5 text-slate-400" />
+                <Lock className="absolute left-3 top-3 w-5 h-5 text-text-muted" />
                 <input 
                   type="password"
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full pl-10 pr-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-sky-500 outline-none transition-all"
+                  className="w-full pl-10 pr-4 py-3 border border-border bg-card text-text-primary rounded-xl focus:ring-2 focus:ring-sky-500 outline-none transition-all"
                   placeholder="••••••••"
                 />
               </div>
@@ -205,22 +205,22 @@ const Auth: React.FC = () => {
           <button 
             type="submit"
             disabled={loading}
-            className="w-full btn-primary py-3 font-semibold shadow-lg shadow-sky-100 disabled:opacity-50"
+            className="w-full btn-primary py-3 font-semibold shadow-lg shadow-sky-100 dark:shadow-none disabled:opacity-50"
           >
             {loading ? 'Processing...' : isForgot ? 'Send Reset Link' : isLogin ? 'Sign In' : 'Create Account'}
           </button>
         </form>
 
-        <div className="pt-4 border-t border-slate-100">
+        <div className="pt-4 border-t border-border">
           {isForgot ? (
             <button 
               onClick={() => setIsForgot(false)}
-              className="text-sm text-slate-500 hover:text-sky-600 font-medium"
+              className="text-sm text-text-muted hover:text-sky-600 font-medium"
             >
               Back to Login
             </button>
           ) : (
-            <p className="text-sm text-slate-500">
+            <p className="text-sm text-text-muted">
               {isLogin ? "Don't have an account?" : "Already have an account?"}{' '}
               <button 
                 onClick={() => setIsLogin(!isLogin)}
@@ -263,15 +263,15 @@ const Onboarding: React.FC<{ onComplete: () => void }> = ({ onComplete }) => {
   const currentStep = steps[step - 1];
 
   return (
-    <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center z-[100] p-4">
+    <div className="fixed inset-0 bg-slate-900/50 dark:bg-black/70 backdrop-blur-sm flex items-center justify-center z-[100] p-4">
       <div className="card max-w-lg w-full text-center space-y-8 animate-in zoom-in-95 duration-300">
         <div className={`w-20 h-20 rounded-3xl flex items-center justify-center mx-auto ${currentStep.color}`}>
           <currentStep.icon className="w-10 h-10" />
         </div>
         
         <div className="space-y-2">
-          <h2 className="text-3xl font-bold tracking-tight">{currentStep.title}</h2>
-          <p className="text-slate-500 text-lg leading-relaxed">
+          <h2 className="text-3xl font-bold tracking-tight text-text-primary">{currentStep.title}</h2>
+          <p className="text-text-muted text-lg leading-relaxed">
             {currentStep.description}
           </p>
         </div>
@@ -280,7 +280,7 @@ const Onboarding: React.FC<{ onComplete: () => void }> = ({ onComplete }) => {
           {steps.map((_, i) => (
             <div 
               key={i} 
-              className={`h-2 rounded-full transition-all duration-300 ${i + 1 === step ? 'w-8 bg-sky-600' : 'w-2 bg-slate-200'}`} 
+              className={`h-2 rounded-full transition-all duration-300 ${i + 1 === step ? 'w-8 bg-sky-600' : 'w-2 bg-border'}`} 
             />
           ))}
         </div>
@@ -300,11 +300,21 @@ const Onboarding: React.FC<{ onComplete: () => void }> = ({ onComplete }) => {
   );
 };
 
-const Sidebar: React.FC<{ activeTab: string; setActiveTab: (tab: string) => void; user: UserProfile; currency: string; setCurrency: (c: string) => void; onSignOut: () => void }> = ({ activeTab, setActiveTab, user, currency, setCurrency, onSignOut }) => {
+const Sidebar: React.FC<{ 
+  activeTab: string; 
+  setActiveTab: (tab: string) => void; 
+  user: UserProfile; 
+  currency: string; 
+  setCurrency: (c: string) => void; 
+  onSignOut: () => void;
+  totalSpent: number;
+  totalIncome: number;
+  formatCurrency: (amount: number) => string;
+}> = ({ activeTab, setActiveTab, user, currency, setCurrency, onSignOut, totalSpent, totalIncome, formatCurrency }) => {
   const navItems = [
     { id: 'dashboard', icon: LayoutDashboard, label: 'Dashboard' },
-    { id: 'expenses', icon: TrendingUp, label: 'Expenses' },
-    { id: 'income', icon: ArrowUpRight, label: 'Income' },
+    { id: 'expenses', icon: TrendingUp, label: 'Expenses', badge: totalSpent > 0 ? formatCurrency(totalSpent) : null },
+    { id: 'income', icon: ArrowUpRight, label: 'Income', badge: totalIncome > 0 ? formatCurrency(totalIncome) : null },
     { id: 'budgets', icon: Wallet, label: 'Budgets' },
     { id: 'ai', icon: Sparkles, label: 'AI Advice' },
     { id: 'profile', icon: UserIcon, label: 'Profile' },
@@ -313,10 +323,10 @@ const Sidebar: React.FC<{ activeTab: string; setActiveTab: (tab: string) => void
   return (
     <>
       {/* Desktop Sidebar */}
-      <aside className="hidden md:flex w-64 bg-white border-r border-slate-200 h-screen sticky top-0 flex-col p-4">
+      <aside className="hidden md:flex w-64 bg-card border-r border-border h-screen sticky top-0 flex-col p-4">
         <div className="flex items-center gap-2 mb-8 px-2">
           <Wallet className="w-8 h-8 text-sky-600" />
-          <span className="font-bold text-xl tracking-tight">FINOVA</span>
+          <span className="font-bold text-xl tracking-tight text-primary">FINOVA</span>
         </div>
         
         <nav className="flex-1 space-y-1">
@@ -326,23 +336,28 @@ const Sidebar: React.FC<{ activeTab: string; setActiveTab: (tab: string) => void
               onClick={() => setActiveTab(item.id)}
               className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${
                 activeTab === item.id 
-                  ? 'bg-sky-50 text-sky-600 font-medium' 
-                  : 'text-slate-500 hover:bg-slate-50'
+                  ? 'bg-sky-50 dark:bg-sky-900/20 text-sky-600 font-medium' 
+                  : 'text-muted hover:bg-slate-50 dark:hover:bg-slate-800/50'
               }`}
             >
               <item.icon className="w-5 h-5" />
-              {item.label}
+              <span className="flex-1 text-left">{item.label}</span>
+              {item.badge && (
+                <span className="text-[10px] font-bold px-1.5 py-0.5 bg-sky-100 dark:bg-sky-900/40 text-sky-600 dark:text-sky-400 rounded-md border border-sky-200 dark:border-sky-800">
+                  {item.badge}
+                </span>
+              )}
             </button>
           ))}
         </nav>
 
-        <div className="mt-auto pt-4 border-t border-slate-100 space-y-4">
+        <div className="mt-auto pt-4 border-t border-border space-y-4">
           <div className="px-2">
-            <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 block">Currency</label>
+            <label className="text-[10px] font-bold text-muted uppercase tracking-widest mb-2 block">Currency</label>
             <select 
               value={currency}
               onChange={(e) => setCurrency(e.target.value)}
-              className="w-full p-2 text-sm border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-sky-500"
+              className="w-full p-2 text-sm border border-border bg-card text-primary rounded-lg outline-none focus:ring-2 focus:ring-sky-500"
             >
               {CURRENCIES.map(c => (
                 <option key={c.code} value={c.code}>{c.code} ({c.symbol})</option>
@@ -351,7 +366,7 @@ const Sidebar: React.FC<{ activeTab: string; setActiveTab: (tab: string) => void
           </div>
 
           <div className="flex items-center gap-3 px-2 mb-4">
-            <div className="w-10 h-10 rounded-full bg-sky-100 flex items-center justify-center text-sky-700 font-bold border border-slate-200 overflow-hidden">
+            <div className="w-10 h-10 rounded-full bg-sky-100 dark:bg-sky-900/30 flex items-center justify-center text-sky-700 dark:text-sky-400 font-bold border border-border overflow-hidden">
               {user.photoURL ? (
                 <img src={user.photoURL} alt="Profile" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
               ) : (
@@ -359,13 +374,13 @@ const Sidebar: React.FC<{ activeTab: string; setActiveTab: (tab: string) => void
               )}
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium truncate">{user.displayName}</p>
-              <p className="text-xs text-slate-400 truncate">{user.email}</p>
+              <p className="text-sm font-medium truncate text-primary">{user.displayName}</p>
+              <p className="text-xs text-muted truncate">{user.email}</p>
             </div>
           </div>
           <button 
             onClick={onSignOut}
-            className="w-full flex items-center gap-3 px-4 py-2 text-slate-500 hover:text-danger transition-colors rounded-lg hover:bg-red-50"
+            className="w-full flex items-center gap-3 px-4 py-2 text-muted hover:text-danger transition-colors rounded-lg hover:bg-red-50 dark:hover:bg-red-900/10"
           >
             <LogOut className="w-5 h-5" />
             Sign Out
@@ -374,22 +389,28 @@ const Sidebar: React.FC<{ activeTab: string; setActiveTab: (tab: string) => void
       </aside>
 
       {/* Mobile Header */}
-      <header className="md:hidden flex items-center justify-between p-4 bg-white border-b border-slate-200 sticky top-0 z-40">
+      <header className="md:hidden flex items-center justify-between p-4 bg-card border-b border-border sticky top-0 z-40">
         <div className="flex items-center gap-2">
           <Wallet className="w-6 h-6 text-sky-600" />
-          <span className="font-bold text-lg tracking-tight">FINOVA</span>
+          <span className="font-bold text-lg tracking-tight text-primary">FINOVA</span>
         </div>
         <div className="flex items-center gap-3">
           <select 
             value={currency}
             onChange={(e) => setCurrency(e.target.value)}
-            className="p-1 text-xs border border-slate-200 rounded outline-none focus:ring-1 focus:ring-sky-500"
+            className="p-1 text-xs border border-border bg-card text-primary rounded outline-none focus:ring-1 focus:ring-sky-500"
           >
             {CURRENCIES.map(c => (
               <option key={c.code} value={c.code}>{c.code}</option>
             ))}
           </select>
-          <div className="w-8 h-8 rounded-full bg-sky-100 flex items-center justify-center text-sky-700 font-bold border border-slate-200 text-xs overflow-hidden">
+          <button 
+            onClick={onSignOut}
+            className="w-8 h-8 rounded-full bg-rose-50 dark:bg-rose-900/20 flex items-center justify-center text-rose-600 dark:text-rose-400 border border-border"
+          >
+            <LogOut className="w-4 h-4" />
+          </button>
+          <div className="w-8 h-8 rounded-full bg-sky-100 dark:bg-sky-900/30 flex items-center justify-center text-sky-700 dark:text-sky-400 font-bold border border-border text-xs overflow-hidden">
             {user.photoURL ? (
               <img src={user.photoURL} alt="Profile" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
             ) : (
@@ -400,13 +421,13 @@ const Sidebar: React.FC<{ activeTab: string; setActiveTab: (tab: string) => void
       </header>
 
       {/* Mobile Bottom Nav */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 px-2 py-1 flex justify-around items-center z-40">
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-card border-t border-border px-2 py-1 flex justify-around items-center z-40">
         {navItems.map((item) => (
           <button
             key={item.id}
             onClick={() => setActiveTab(item.id)}
             className={`flex flex-col items-center p-2 rounded-lg transition-all ${
-              activeTab === item.id ? 'text-sky-600' : 'text-slate-400'
+              activeTab === item.id ? 'text-sky-600' : 'text-text-muted'
             }`}
           >
             <item.icon className="w-5 h-5" />
@@ -460,10 +481,21 @@ export default function App() {
           displayName: userData?.displayName || firebaseUser.displayName || 'User',
           email: userData?.email || firebaseUser.email || '',
           photoURL: userData?.photoURL || firebaseUser.photoURL || '',
-          createdAt: userData?.createdAt || new Date().toISOString()
+          createdAt: userData?.createdAt || new Date().toISOString(),
+          theme: userData?.theme || 'light',
+          showRecentTransactions: userData?.showRecentTransactions ?? true
         });
         setOnboarded(userData?.onboarded ?? true);
         if (userData?.currency) setCurrencyCode(userData.currency);
+        
+        // Apply theme
+        const theme = userData?.theme || 'light';
+        document.documentElement.className = ''; // Reset all classes
+        if (theme === 'dark') {
+          document.documentElement.classList.add('dark');
+        } else if (theme !== 'light') {
+          document.documentElement.classList.add(theme);
+        }
       } else {
         setUser(null);
       }
@@ -472,6 +504,38 @@ export default function App() {
 
     return () => unsubscribe();
   }, []);
+
+  // Recurring Budgets Carry Over
+  useEffect(() => {
+    if (!user || budgets.length === 0) return;
+
+    const currentMonth = new Date().getMonth() + 1;
+    const currentYear = new Date().getFullYear();
+
+    const prevMonthDate = subMonths(new Date(), 1);
+    const prevMonth = prevMonthDate.getMonth() + 1;
+    const prevYear = prevMonthDate.getFullYear();
+
+    const recurringBudgets = budgets.filter(b => b.isRecurring && b.month === prevMonth && b.year === prevYear);
+
+    recurringBudgets.forEach(async (rb) => {
+      const exists = budgets.find(b => b.category === rb.category && b.month === currentMonth && b.year === currentYear);
+      if (!exists) {
+        try {
+          await addDoc(collection(db, 'budgets'), {
+            userId: user.uid,
+            category: rb.category,
+            limit: rb.limit,
+            month: currentMonth,
+            year: currentYear,
+            isRecurring: true
+          });
+        } catch (error) {
+          console.error("Error carrying over recurring budget:", error);
+        }
+      }
+    });
+  }, [user, budgets]);
 
   const completeOnboarding = async () => {
     if (!user) return;
@@ -568,47 +632,9 @@ export default function App() {
     };
   }, [user]);
 
-  if (loading) return (
-    <div className="flex flex-col items-center justify-center h-screen space-y-4">
-      <div className="w-12 h-12 border-4 border-sky-600 border-t-transparent rounded-full animate-spin" />
-      <p className="text-slate-500 font-medium animate-pulse">Initializing FINOVA...</p>
-    </div>
-  );
-
-  if (!user) return <Auth />;
-
-  return (
-    <ErrorBoundary>
-      {!onboarded && <Onboarding onComplete={completeOnboarding} />}
-      <div className="flex flex-col md:flex-row min-h-screen bg-slate-50">
-        <Sidebar 
-          activeTab={activeTab} 
-          setActiveTab={setActiveTab} 
-          user={user} 
-          currency={currencyCode} 
-          setCurrency={handleSetCurrency} 
-          onSignOut={handleSignOut}
-        />
-        <main className="flex-1 p-4 md:p-8 overflow-y-auto min-w-0 pb-20 md:pb-8">
-          {activeTab === 'dashboard' && <Dashboard expenses={expenses} budgets={budgets} incomes={incomes} formatCurrency={formatCurrency} />}
-          {activeTab === 'expenses' && <ExpensesView expenses={expenses} userId={user.uid} budgets={budgets} setToast={setToast} formatCurrency={formatCurrency} />}
-          {activeTab === 'income' && <IncomeView incomes={incomes} userId={user.uid} formatCurrency={formatCurrency} />}
-          {activeTab === 'budgets' && <BudgetsView budgets={budgets} userId={user.uid} formatCurrency={formatCurrency} />}
-          {activeTab === 'ai' && <AIAdviceView expenses={expenses} budgets={budgets} currencyCode={currencyCode} currencySymbol={currency.symbol} />}
-          {activeTab === 'profile' && <ProfileView user={user} setUser={setUser} />}
-        </main>
-        {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
-      </div>
-    </ErrorBoundary>
-  );
-}
-
-// --- Views ---
-
-const Dashboard: React.FC<{ expenses: Expense[]; budgets: Budget[]; incomes: Income[]; formatCurrency: (amount: number) => string }> = ({ expenses, budgets, incomes, formatCurrency }) => {
   const currentMonth = new Date().getMonth() + 1;
   const currentYear = new Date().getFullYear();
-  
+
   const monthlyExpenses = expenses.filter(e => {
     const d = new Date(e.date);
     return d.getMonth() + 1 === currentMonth && d.getFullYear() === currentYear;
@@ -621,13 +647,120 @@ const Dashboard: React.FC<{ expenses: Expense[]; budgets: Budget[]; incomes: Inc
 
   const totalSpent = monthlyExpenses.reduce((sum, e) => sum + e.amount, 0);
   const totalIncome = monthlyIncomes.reduce((sum, i) => sum + i.amount, 0);
+
+  if (loading) return (
+    <div className="flex flex-col items-center justify-center h-screen space-y-4 bg-bg">
+      <div className="w-12 h-12 border-4 border-sky-600 border-t-transparent rounded-full animate-spin" />
+      <p className="text-text-muted font-medium animate-pulse">Initializing FINOVA...</p>
+    </div>
+  );
+
+  if (!user) return <Auth />;
+
+  return (
+    <ErrorBoundary>
+      {!onboarded && <Onboarding onComplete={completeOnboarding} />}
+      <div className="flex flex-col md:flex-row min-h-screen bg-bg">
+        <Sidebar 
+          activeTab={activeTab} 
+          setActiveTab={setActiveTab} 
+          user={user} 
+          currency={currencyCode} 
+          setCurrency={handleSetCurrency} 
+          onSignOut={handleSignOut}
+          totalSpent={totalSpent}
+          totalIncome={totalIncome}
+          formatCurrency={formatCurrency}
+        />
+        <main className="flex-1 p-4 md:p-8 overflow-y-auto min-w-0 pb-20 md:pb-8">
+          {activeTab === 'dashboard' && (
+            <Dashboard 
+              expenses={expenses} 
+              budgets={budgets} 
+              incomes={incomes} 
+              formatCurrency={formatCurrency} 
+              showRecentTransactions={user?.showRecentTransactions} 
+            />
+          )}
+          {activeTab === 'expenses' && (
+            <ExpensesView 
+              expenses={expenses} 
+              userId={user.uid} 
+              budgets={budgets} 
+              setToast={setToast} 
+              formatCurrency={formatCurrency} 
+              totalSpent={totalSpent}
+            />
+          )}
+          {activeTab === 'income' && (
+            <IncomeView 
+              incomes={incomes} 
+              userId={user.uid} 
+              formatCurrency={formatCurrency} 
+              totalIncome={totalIncome}
+            />
+          )}
+          {activeTab === 'budgets' && <BudgetsView budgets={budgets} expenses={expenses} userId={user.uid} formatCurrency={formatCurrency} />}
+          {activeTab === 'ai' && <AIAdviceView expenses={expenses} budgets={budgets} currencyCode={currencyCode} currencySymbol={currency.symbol} />}
+          {activeTab === 'profile' && <ProfileView user={user} setUser={setUser} />}
+        </main>
+        {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
+      </div>
+    </ErrorBoundary>
+  );
+}
+
+// --- Views ---
+
+const Dashboard: React.FC<{ 
+  expenses: Expense[]; 
+  budgets: Budget[]; 
+  incomes: Income[]; 
+  formatCurrency: (amount: number) => string; 
+  showRecentTransactions?: boolean;
+}> = ({ expenses, budgets, incomes, formatCurrency, showRecentTransactions = true }) => {
+  const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth() + 1);
+  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
+  const [isRecentExpanded, setIsRecentExpanded] = useState(false);
+
+  const monthlyExpenses = expenses.filter(e => {
+    const d = new Date(e.date);
+    return d.getMonth() + 1 === selectedMonth && d.getFullYear() === selectedYear;
+  });
+
+  const monthlyIncomes = incomes.filter(i => {
+    const d = new Date(i.date);
+    return d.getMonth() + 1 === selectedMonth && d.getFullYear() === selectedYear;
+  });
+
+  // Previous Month Data for Carry Over
+  const prevMonth = selectedMonth === 1 ? 12 : selectedMonth - 1;
+  const prevYear = selectedMonth === 1 ? selectedYear - 1 : selectedYear;
+
+  const prevMonthExpenses = expenses.filter(e => {
+    const d = new Date(e.date);
+    return d.getMonth() + 1 === prevMonth && d.getFullYear() === prevYear;
+  });
+
+  const prevMonthIncomes = incomes.filter(i => {
+    const d = new Date(i.date);
+    return d.getMonth() + 1 === prevMonth && d.getFullYear() === prevYear;
+  });
+
+  const prevClosingBalance = prevMonthIncomes.reduce((sum, i) => sum + i.amount, 0) - prevMonthExpenses.reduce((sum, e) => sum + e.amount, 0);
+  const prevOutstandingDebt = prevMonthExpenses.filter(e => e.isDebt).reduce((sum, e) => sum + e.amount, 0);
+
+  const totalSpent = monthlyExpenses.reduce((sum, e) => sum + e.amount, 0);
+  const totalIncome = monthlyIncomes.reduce((sum, i) => sum + i.amount, 0);
+  const currentBalance = totalIncome - totalSpent;
+  
   const totalBudget = budgets
-    .filter(b => b.month === currentMonth && b.year === currentYear)
+    .filter(b => b.month === selectedMonth && b.year === selectedYear)
     .reduce((sum, b) => sum + b.limit, 0);
 
   const categoryData = CATEGORIES.map(cat => {
     const spent = monthlyExpenses.filter(e => e.category === cat).reduce((sum, e) => sum + e.amount, 0);
-    const budget = budgets.find(b => b.category === cat && b.month === currentMonth && b.year === currentYear)?.limit || 0;
+    const budget = budgets.find(b => b.category === cat && b.month === selectedMonth && b.year === selectedYear)?.limit || 0;
     return { name: cat, spent, budget };
   }).filter(d => d.spent > 0 || d.budget > 0);
 
@@ -656,56 +789,165 @@ const Dashboard: React.FC<{ expenses: Expense[]; budgets: Budget[]; incomes: Inc
 
   const exportToPDF = () => {
     const doc = new jsPDF();
-    doc.text('FINOVA - Financial Report', 14, 15);
-    doc.setFontSize(10);
-    doc.text(`Generated on: ${format(new Date(), 'PPP')}`, 14, 22);
+    doc.setFontSize(22);
+    doc.setTextColor(14, 165, 233); // Sky-500
+    doc.text('FINOVA - Financial Report', 14, 20);
+    
+    doc.setFontSize(12);
+    doc.setTextColor(100, 116, 139); // Slate-500
+    doc.text(`Period: ${format(new Date(selectedYear, selectedMonth - 1), 'MMMM yyyy')}`, 14, 30);
+    doc.text(`Generated on: ${format(new Date(), 'PPP')}`, 14, 38);
 
     const tableData = [
-      ...expenses.map(e => [format(new Date(e.date), 'yyyy-MM-dd'), 'Expense', e.category, e.description, formatCurrency(e.amount)]),
-      ...incomes.map(i => [format(new Date(i.date), 'yyyy-MM-dd'), 'Income', i.source, i.description, formatCurrency(i.amount)])
+      ...monthlyExpenses.map(e => [format(new Date(e.date), 'yyyy-MM-dd'), 'Expense', e.category, e.description, formatCurrency(e.amount)]),
+      ...monthlyIncomes.map(i => [format(new Date(i.date), 'yyyy-MM-dd'), 'Income', i.source, i.description, formatCurrency(i.amount)])
     ];
 
     autoTable(doc, {
       head: [['Date', 'Type', 'Category', 'Description', 'Amount']],
       body: tableData,
-      startY: 30,
+      startY: 45,
+      theme: 'grid',
+      headStyles: { fillColor: [14, 165, 233] }
     });
 
-    doc.save(`FINOVA_Report_${format(new Date(), 'yyyy-MM-dd')}.pdf`);
+    doc.save(`FINOVA_Report_${selectedYear}_${selectedMonth}.pdf`);
+  };
+
+  const exportHighlights = () => {
+    const doc = new jsPDF();
+    doc.setFontSize(22);
+    doc.setTextColor(14, 165, 233); // Sky-500
+    doc.text('FINOVA Monthly Highlights', 14, 20);
+    
+    doc.setFontSize(12);
+    doc.setTextColor(100, 116, 139); // Slate-500
+    doc.text(`Period: ${format(new Date(selectedYear, selectedMonth - 1), 'MMMM yyyy')}`, 14, 30);
+    
+    doc.setFontSize(14);
+    doc.setTextColor(30, 41, 59); // Slate-800
+    doc.text('Summary', 14, 45);
+    
+    const summaryData = [
+      ['Total Income', formatCurrency(totalIncome)],
+      ['Total Expenses', formatCurrency(totalSpent)],
+      ['Net Savings', formatCurrency(currentBalance)],
+      ['Budget Utilization', totalBudget > 0 ? `${Math.round((totalSpent / totalBudget) * 100)}%` : 'N/A'],
+      ['Previous Month Carry-over', formatCurrency(prevClosingBalance)],
+      ['Outstanding Debt', formatCurrency(prevOutstandingDebt)]
+    ];
+
+    autoTable(doc, {
+      body: summaryData,
+      startY: 50,
+      theme: 'striped',
+      headStyles: { fillColor: [14, 165, 233] }
+    });
+
+    doc.text('Top Spending Categories', 14, (doc as any).lastAutoTable.finalY + 15);
+    
+    const topCategories = [...categoryData]
+      .sort((a, b) => b.spent - a.spent)
+      .slice(0, 5)
+      .map(c => [c.name, formatCurrency(c.spent), `${Math.round((c.spent / totalSpent) * 100)}%`]);
+
+    autoTable(doc, {
+      head: [['Category', 'Amount', '% of Total']],
+      body: topCategories,
+      startY: (doc as any).lastAutoTable.finalY + 20,
+    });
+
+    doc.save(`FINOVA_Highlights_${selectedYear}_${selectedMonth}.pdf`);
   };
 
   const recentTransactions = [
     ...expenses.map(e => ({ ...e, type: 'expense' as const })),
     ...incomes.map(i => ({ ...i, type: 'income' as const }))
   ].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
-  .slice(0, 5);
+  .slice(0, 10);
 
   return (
-    <div className="space-y-8">
-      <header className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+    <div className="space-y-6 md:space-y-8 animate-in fade-in duration-500">
+      <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
-          <h1 className="text-2xl md:text-3xl font-bold tracking-tight">Financial Overview</h1>
-          <p className="text-slate-500">{format(new Date(), 'MMMM yyyy')}</p>
+          <h1 className="text-3xl md:text-4xl font-bold tracking-tight text-primary">Dashboard</h1>
+          <p className="text-muted text-lg">Your financial overview for {format(new Date(selectedYear, selectedMonth - 1), 'MMMM yyyy')}</p>
         </div>
-        <div className="flex gap-2 w-full sm:w-auto">
-          <button onClick={exportToCSV} className="flex-1 sm:flex-none btn-secondary flex items-center justify-center gap-2">
-            <Table className="w-4 h-4" />
-            CSV
-          </button>
-          <button onClick={exportToPDF} className="flex-1 sm:flex-none btn-secondary flex items-center justify-center gap-2">
-            <FileText className="w-4 h-4" />
-            PDF
-          </button>
+        <div className="flex flex-wrap items-center gap-3 w-full md:w-auto">
+          <div className="flex items-center gap-2 bg-card border border-border rounded-xl p-1 shadow-sm">
+            <select 
+              value={selectedMonth}
+              onChange={(e) => setSelectedMonth(parseInt(e.target.value))}
+              className="bg-transparent text-sm font-bold px-3 py-1.5 outline-none text-primary"
+            >
+              {Array.from({ length: 12 }, (_, i) => (
+                <option key={i + 1} value={i + 1}>{format(new Date(2000, i), 'MMMM')}</option>
+              ))}
+            </select>
+            <select 
+              value={selectedYear}
+              onChange={(e) => setSelectedYear(parseInt(e.target.value))}
+              className="bg-transparent text-sm font-bold px-3 py-1.5 outline-none text-primary border-l border-border"
+            >
+              {[2024, 2025, 2026].map(y => (
+                <option key={y} value={y}>{y}</option>
+              ))}
+            </select>
+          </div>
+          <div className="flex gap-2 w-full sm:w-auto">
+            <button onClick={exportHighlights} className="flex-1 sm:flex-none btn-secondary flex items-center justify-center gap-2 text-xs font-bold py-2.5">
+              <Sparkles className="w-4 h-4 text-sky-500" />
+              Highlights
+            </button>
+            <button onClick={exportToPDF} className="flex-1 sm:flex-none btn-secondary flex items-center justify-center gap-2 text-xs font-bold py-2.5">
+              <Download className="w-4 h-4" />
+              PDF
+            </button>
+            <button onClick={exportToCSV} className="flex-1 sm:flex-none btn-secondary flex items-center justify-center gap-2 text-xs font-bold py-2.5">
+              <FileText className="w-4 h-4" />
+              CSV
+            </button>
+          </div>
         </div>
       </header>
 
+      {/* Carry Over Info */}
+      {(prevClosingBalance !== 0 || prevOutstandingDebt > 0) && (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {prevClosingBalance !== 0 && (
+            <div className={`p-4 rounded-2xl border flex items-center gap-4 ${prevClosingBalance > 0 ? 'bg-emerald-50 border-emerald-100 dark:bg-emerald-900/10 dark:border-emerald-900/30' : 'bg-rose-50 border-rose-100 dark:bg-rose-900/10 dark:border-rose-900/30'}`}>
+              <div className={`w-10 h-10 rounded-full flex items-center justify-center ${prevClosingBalance > 0 ? 'bg-emerald-100 text-emerald-600' : 'bg-rose-100 text-rose-600'}`}>
+                <History className="w-5 h-5" />
+              </div>
+              <div>
+                <p className="text-xs font-bold text-muted uppercase tracking-wider">Previous Month Balance</p>
+                <p className={`text-lg font-bold ${prevClosingBalance > 0 ? 'text-emerald-700' : 'text-rose-700'}`}>
+                  {prevClosingBalance > 0 ? '+' : ''}{formatCurrency(prevClosingBalance)}
+                </p>
+              </div>
+            </div>
+          )}
+          {prevOutstandingDebt > 0 && (
+            <div className="p-4 rounded-2xl border border-amber-100 bg-amber-50 dark:bg-amber-900/10 dark:border-amber-900/30 flex items-center gap-4">
+              <div className="w-10 h-10 rounded-full bg-amber-100 text-amber-600 flex items-center justify-center">
+                <AlertCircle className="w-5 h-5" />
+              </div>
+              <div>
+                <p className="text-xs font-bold text-muted uppercase tracking-wider">Outstanding Debt Carried Over</p>
+                <p className="text-lg font-bold text-amber-700">{formatCurrency(prevOutstandingDebt)}</p>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
       {alerts.length > 0 && (
-        <div className="bg-red-50 border border-red-200 rounded-xl p-4 space-y-2">
-          <div className="flex items-center gap-2 text-red-700 font-semibold">
+        <div className="bg-red-50 dark:bg-red-900/10 border border-red-200 dark:border-red-900/30 rounded-xl p-4 space-y-2">
+          <div className="flex items-center gap-2 text-red-700 dark:text-red-400 font-semibold">
             <AlertCircle className="w-5 h-5" />
             Budget Alerts
           </div>
-          <ul className="text-sm text-red-600 space-y-1">
+          <ul className="text-sm text-red-600 dark:text-red-300 space-y-1">
             {alerts.map(alert => (
               <li key={alert.name}>
                 You've exceeded your <strong>{alert.name}</strong> budget by <strong>{formatCurrency(alert.spent - alert.budget)}</strong>.
@@ -717,22 +959,22 @@ const Dashboard: React.FC<{ expenses: Expense[]; budgets: Budget[]; incomes: Inc
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
         <div className="card border-l-4 border-emerald-500">
-          <p className="text-xs font-medium text-slate-500 uppercase tracking-wider">Monthly Income</p>
+          <p className="text-xs font-medium text-muted uppercase tracking-wider">Monthly Income</p>
           <p className="text-xl md:text-2xl font-bold mt-1 text-emerald-600">+{formatCurrency(totalIncome)}</p>
         </div>
         <div className="card border-l-4 border-rose-500">
-          <p className="text-xs font-medium text-slate-500 uppercase tracking-wider">Monthly Spent</p>
+          <p className="text-xs font-medium text-muted uppercase tracking-wider">Monthly Spent</p>
           <p className="text-xl md:text-2xl font-bold mt-1 text-rose-600">-{formatCurrency(totalSpent)}</p>
         </div>
         <div className="card border-l-4 border-sky-500">
-          <p className="text-xs font-medium text-slate-500 uppercase tracking-wider">Net Balance</p>
+          <p className="text-xs font-medium text-muted uppercase tracking-wider">Net Balance</p>
           <p className={`text-xl md:text-2xl font-bold mt-1 ${totalIncome - totalSpent >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
             {formatCurrency(totalIncome - totalSpent)}
           </p>
         </div>
         <div className="card border-l-4 border-amber-500">
-          <p className="text-xs font-medium text-slate-500 uppercase tracking-wider">Budget Status</p>
-          <p className="text-xl md:text-2xl font-bold mt-1">
+          <p className="text-xs font-medium text-muted uppercase tracking-wider">Budget Status</p>
+          <p className="text-xl md:text-2xl font-bold mt-1 text-primary">
             {totalBudget > 0 ? `${Math.round((totalSpent / totalBudget) * 100)}%` : 'N/A'}
           </p>
         </div>
@@ -740,27 +982,33 @@ const Dashboard: React.FC<{ expenses: Expense[]; budgets: Budget[]; incomes: Inc
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-8">
         <div className="card">
-          <h3 className="text-lg font-semibold mb-6 flex items-center gap-2">
+          <h3 className="text-lg font-semibold mb-6 flex items-center gap-2 text-primary">
             <TrendingUp className="w-5 h-5 text-sky-500" />
             Spending vs Budget
           </h3>
           <div className="h-64 md:h-80 w-full relative">
             <ResponsiveContainer width="100%" height="100%" minWidth={0}>
               <BarChart data={categoryData}>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                <XAxis dataKey="name" fontSize={12} />
-                <YAxis fontSize={12} />
-                <Tooltip />
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border)" />
+                <XAxis dataKey="name" fontSize={12} stroke="var(--text-muted)" />
+                <YAxis fontSize={12} stroke="var(--text-muted)" />
+                <Tooltip 
+                  contentStyle={{ 
+                    backgroundColor: 'var(--card)', 
+                    borderColor: 'var(--border)',
+                    color: 'var(--text)'
+                  }} 
+                />
                 <Legend />
                 <Bar dataKey="spent" fill="#0ea5e9" name="Spent" radius={[4, 4, 0, 0]} />
-                <Bar dataKey="budget" fill="#e2e8f0" name="Budget" radius={[4, 4, 0, 0]} />
+                <Bar dataKey="budget" fill="var(--border)" name="Budget" radius={[4, 4, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           </div>
         </div>
 
         <div className="card">
-          <h3 className="text-lg font-semibold mb-6 flex items-center gap-2">
+          <h3 className="text-lg font-semibold mb-6 flex items-center gap-2 text-primary">
             <PieIcon className="w-5 h-5 text-emerald-500" />
             Expense Distribution
           </h3>
@@ -780,7 +1028,13 @@ const Dashboard: React.FC<{ expenses: Expense[]; budgets: Budget[]; incomes: Inc
                     <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                   ))}
                 </Pie>
-                <Tooltip />
+                <Tooltip 
+                  contentStyle={{ 
+                    backgroundColor: 'var(--card)', 
+                    borderColor: 'var(--border)',
+                    color: 'var(--text)'
+                  }} 
+                />
                 <Legend />
               </PieChart>
             </ResponsiveContainer>
@@ -788,69 +1042,115 @@ const Dashboard: React.FC<{ expenses: Expense[]; budgets: Budget[]; incomes: Inc
         </div>
       </div>
 
-      <div className="card">
-        <h3 className="text-lg font-semibold mb-6 flex items-center gap-2">
-          <FileText className="w-5 h-5 text-slate-500" />
-          Recent Transactions
-        </h3>
-        <div className="overflow-x-auto">
-          <table className="w-full text-left">
-            <thead>
-              <tr className="border-b border-slate-100">
-                <th className="pb-4 text-xs font-bold text-slate-400 uppercase tracking-wider">Date</th>
-                <th className="pb-4 text-xs font-bold text-slate-400 uppercase tracking-wider">Description</th>
-                <th className="pb-4 text-xs font-bold text-slate-400 uppercase tracking-wider">Category/Source</th>
-                <th className="pb-4 text-xs font-bold text-slate-400 uppercase tracking-wider text-right">Amount</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-50">
-              {recentTransactions.length > 0 ? (
-                recentTransactions.map((tx: any) => (
-                  <tr key={tx.id} className="group hover:bg-slate-50/50 transition-colors">
-                    <td className="py-4 text-sm text-slate-500">
-                      {format(new Date(tx.date), 'MMM d, yyyy')}
-                    </td>
-                    <td className="py-4">
-                      <div className="flex items-center gap-3">
-                        <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${
-                          tx.type === 'income' ? 'bg-emerald-100 text-emerald-600' : 'bg-rose-100 text-rose-600'
-                        }`}>
-                          {tx.type === 'income' ? <ArrowUpRight className="w-4 h-4" /> : <ArrowDownRight className="w-4 h-4" />}
-                        </div>
-                        <span className="text-sm font-medium text-slate-700">{tx.description}</span>
-                      </div>
-                    </td>
-                    <td className="py-4">
-                      <span className="text-xs font-medium px-2 py-1 bg-slate-100 text-slate-600 rounded-md">
-                        {tx.type === 'income' ? tx.source : tx.category}
-                      </span>
-                    </td>
-                    <td className={`py-4 text-sm font-bold text-right ${
-                      tx.type === 'income' ? 'text-emerald-600' : 'text-rose-600'
-                    }`}>
-                      {tx.type === 'income' ? '+' : '-'}{formatCurrency(tx.amount)}
-                    </td>
-                  </tr>
-                ))
-              ) : (
-                <tr>
-                  <td colSpan={4} className="py-8 text-center text-slate-400 text-sm italic">
-                    No recent transactions found.
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
+      {/* Motivation & Recent Transactions */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8">
+        <div className="lg:col-span-1 space-y-6">
+          <div className="card bg-gradient-to-br from-sky-500 to-sky-600 text-white border-none shadow-lg shadow-sky-200 dark:shadow-none">
+            <div className="flex items-center gap-3 mb-4">
+              <Sparkles className="w-6 h-6 text-sky-200" />
+              <h3 className="font-bold text-lg">Daily Motivation</h3>
+            </div>
+            <p className="text-sky-50 italic mb-4">
+              "The goal isn't more money. The goal is living life on your terms."
+            </p>
+            <div className="text-xs font-bold text-sky-200 uppercase tracking-widest">
+              — Chris Brogan
+            </div>
+          </div>
+
+          <div className="card border-l-4 border-emerald-500">
+            <h3 className="font-bold text-primary mb-2 flex items-center gap-2">
+              <TrendingUp className="w-5 h-5 text-emerald-500" />
+              Financial Health
+            </h3>
+            <p className="text-sm text-muted">
+              You've saved <span className="font-bold text-emerald-600">{formatCurrency(currentBalance > 0 ? currentBalance : 0)}</span> this month. Keep it up!
+            </p>
+          </div>
+        </div>
+
+        <div className="lg:col-span-2">
+          {showRecentTransactions && (
+            <div className="card h-full">
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="text-lg font-semibold flex items-center gap-2 text-primary">
+                  <FileText className="w-5 h-5 text-muted" />
+                  Recent Transactions
+                </h3>
+                <button 
+                  onClick={() => setIsRecentExpanded(!isRecentExpanded)}
+                  className="text-xs font-bold text-sky-600 hover:text-sky-700 uppercase tracking-wider"
+                >
+                  {isRecentExpanded ? 'Show Less' : 'Show More'}
+                </button>
+              </div>
+              <div className="overflow-x-auto">
+                <table className="w-full text-left">
+                  <thead>
+                    <tr className="border-b border-border">
+                      <th className="pb-4 text-xs font-bold text-muted uppercase tracking-wider">Date</th>
+                      <th className="pb-4 text-xs font-bold text-muted uppercase tracking-wider">Description</th>
+                      <th className="pb-4 text-xs font-bold text-muted uppercase tracking-wider text-right">Amount</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-border">
+                    {recentTransactions.length > 0 ? (
+                      recentTransactions.slice(0, isRecentExpanded ? 10 : 5).map((tx: any) => (
+                        <tr key={tx.id} className="group hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
+                          <td className="py-4 text-sm text-muted">
+                            {format(new Date(tx.date), 'MMM d')}
+                          </td>
+                          <td className="py-4">
+                            <div className="flex items-center gap-3">
+                              <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${
+                                tx.type === 'income' ? 'bg-emerald-100 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400' : 'bg-rose-100 dark:bg-rose-900/20 text-rose-600 dark:text-rose-400'
+                              }`}>
+                                {tx.type === 'income' ? <ArrowUpRight className="w-4 h-4" /> : <ArrowDownRight className="w-4 h-4" />}
+                              </div>
+                              <div className="flex flex-col">
+                                <span className="text-sm font-medium text-primary">{tx.description}</span>
+                                <span className="text-[10px] text-muted uppercase font-bold">{tx.type === 'income' ? tx.source : tx.category}</span>
+                              </div>
+                            </div>
+                          </td>
+                          <td className={`py-4 text-sm font-bold text-right ${
+                            tx.type === 'income' ? 'text-emerald-600' : 'text-rose-600'
+                          }`}>
+                            {tx.type === 'income' ? '+' : '-'}{formatCurrency(tx.amount)}
+                          </td>
+                        </tr>
+                      ))
+                    ) : (
+                      <tr>
+                        <td colSpan={3} className="py-8 text-center text-muted text-sm italic">
+                          No recent transactions found.
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>
   );
 };
 
-const ExpensesView: React.FC<{ expenses: Expense[]; userId: string; budgets: Budget[]; setToast: (t: any) => void; formatCurrency: (amount: number) => string }> = ({ expenses, userId, budgets, setToast, formatCurrency }) => {
+const ExpensesView: React.FC<{ 
+  expenses: Expense[]; 
+  userId: string; 
+  budgets: Budget[]; 
+  setToast: (t: any) => void; 
+  formatCurrency: (amount: number) => string;
+  totalSpent: number;
+}> = ({ expenses, userId, budgets, setToast, formatCurrency, totalSpent }) => {
   const [isAdding, setIsAdding] = useState(false);
   const [description, setDescription] = useState('');
   const [amount, setAmount] = useState('');
+  const [merchant, setMerchant] = useState('');
+  const [isDebt, setIsDebt] = useState(false);
   const [category, setCategory] = useState(CATEGORIES[0]);
   const [isAiLoading, setIsAiLoading] = useState(false);
 
@@ -877,13 +1177,36 @@ const ExpensesView: React.FC<{ expenses: Expense[]; userId: string; budgets: Bud
       await addDoc(collection(db, 'expenses'), {
         userId,
         description,
+        merchant,
+        isDebt,
         amount: expenseAmount,
         category,
         date: new Date().toISOString(),
         aiCategorized: false
       });
+
+      if (category === 'Investments') {
+        const quotes = [
+          "The best time to plant a tree was 20 years ago. The second best time is now.",
+          "An investment in knowledge pays the best interest.",
+          "The stock market is a device for transferring money from the impatient to the patient.",
+          "Beware of little expenses; a small leak will sink a great ship.",
+          "The individual investor should act consistently as an investor and not as a speculator."
+        ];
+        const randomQuote = quotes[Math.floor(Math.random() * quotes.length)];
+        
+        Swal.fire({
+          title: 'Congratulations!',
+          text: `You just made a great investment! Remember: "${randomQuote}"`,
+          icon: 'success',
+          confirmButtonColor: '#10b981'
+        });
+      }
+
       setDescription('');
       setAmount('');
+      setMerchant('');
+      setIsDebt(false);
       setIsAdding(false);
     } catch (error) {
       handleFirestoreError(error, OperationType.CREATE, 'expenses');
@@ -909,7 +1232,12 @@ const ExpensesView: React.FC<{ expenses: Expense[]; userId: string; budgets: Bud
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <h1 className="text-2xl md:text-3xl font-bold tracking-tight">Expenses</h1>
+        <div className="flex items-center gap-3">
+          <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-primary">Expenses</h1>
+          <span className="px-3 py-1 bg-rose-50 dark:bg-rose-900/20 text-rose-600 dark:text-rose-400 text-sm font-bold rounded-full border border-rose-100 dark:border-rose-900/30">
+            {formatCurrency(totalSpent)}
+          </span>
+        </div>
         <button onClick={() => setIsAdding(!isAdding)} className="w-full sm:w-auto btn-primary flex items-center justify-center gap-2">
           <Plus className="w-5 h-5" />
           Add Expense
@@ -917,45 +1245,66 @@ const ExpensesView: React.FC<{ expenses: Expense[]; userId: string; budgets: Bud
       </div>
 
       {isAdding && (
-        <div className="card border-2 border-sky-100 animate-in fade-in slide-in-from-top-4">
-          <form onSubmit={handleAddExpense} className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
+        <div className="card border-2 border-sky-100 dark:border-sky-900/30 animate-in fade-in slide-in-from-top-4">
+          <form onSubmit={handleAddExpense} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 items-end">
             <div className="space-y-2">
-              <label className="text-sm font-medium text-slate-600">Description</label>
+              <label className="text-sm font-medium text-muted">Description</label>
               <input 
                 type="text" 
                 value={description} 
                 onChange={(e) => setDescription(e.target.value)}
-                className="w-full p-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-sky-500 outline-none"
+                className="w-full p-2 border border-border bg-card text-primary rounded-lg focus:ring-2 focus:ring-sky-500 outline-none"
                 placeholder="What did you buy?"
                 onBlur={handleAiCategorize}
               />
             </div>
             <div className="space-y-2">
-              <label className="text-sm font-medium text-slate-600">Amount (NGN)</label>
+              <label className="text-sm font-medium text-muted">Merchant/Vendor</label>
+              <input 
+                type="text" 
+                value={merchant} 
+                onChange={(e) => setMerchant(e.target.value)}
+                className="w-full p-2 border border-border bg-card text-primary rounded-lg focus:ring-2 focus:ring-sky-500 outline-none"
+                placeholder="Where did you pay?"
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-muted">Amount</label>
               <input 
                 type="number" 
                 value={amount} 
                 onChange={(e) => setAmount(e.target.value)}
-                className="w-full p-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-sky-500 outline-none"
+                className="w-full p-2 border border-border bg-card text-primary rounded-lg focus:ring-2 focus:ring-sky-500 outline-none"
                 placeholder="0.00"
               />
             </div>
             <div className="space-y-2">
-              <label className="text-sm font-medium text-slate-600 flex items-center gap-2">
+              <label className="text-sm font-medium text-muted flex items-center gap-2">
                 Category
                 {isAiLoading && <Sparkles className="w-3 h-3 text-sky-500 animate-pulse" />}
               </label>
               <select 
                 value={category} 
                 onChange={(e) => setCategory(e.target.value)}
-                className="w-full p-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-sky-500 outline-none"
+                className="w-full p-2 border border-border bg-card text-primary rounded-lg focus:ring-2 focus:ring-sky-500 outline-none"
               >
                 {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
               </select>
             </div>
-            <div className="flex gap-2">
-              <button type="submit" className="flex-1 btn-primary">Save</button>
-              <button type="button" onClick={() => setIsAdding(false)} className="btn-secondary">Cancel</button>
+            <div className="flex flex-col gap-2">
+              <label className="flex items-center gap-2 cursor-pointer py-2">
+                <input 
+                  type="checkbox" 
+                  checked={isDebt} 
+                  onChange={(e) => setIsDebt(e.target.checked)}
+                  className="w-4 h-4 rounded border-border text-sky-600 focus:ring-sky-500"
+                />
+                <span className="text-sm font-medium text-muted">Track as Debt</span>
+              </label>
+              <div className="flex gap-2">
+                <button type="submit" className="flex-1 btn-primary">Save</button>
+                <button type="button" onClick={() => setIsAdding(false)} className="btn-secondary">Cancel</button>
+              </div>
             </div>
           </form>
         </div>
@@ -963,29 +1312,36 @@ const ExpensesView: React.FC<{ expenses: Expense[]; userId: string; budgets: Bud
 
       <div className="card p-0 overflow-hidden overflow-x-auto">
         <table className="w-full text-left min-w-[600px]">
-          <thead className="bg-slate-50 border-b border-slate-200">
+          <thead className="bg-slate-50 dark:bg-slate-800/50 border-b border-border">
             <tr>
-              <th className="px-6 py-4 text-sm font-semibold text-slate-600">Date</th>
-              <th className="px-6 py-4 text-sm font-semibold text-slate-600">Description</th>
-              <th className="px-6 py-4 text-sm font-semibold text-slate-600">Category</th>
-              <th className="px-6 py-4 text-sm font-semibold text-slate-600 text-right">Amount</th>
-              <th className="px-6 py-4 text-sm font-semibold text-slate-600 text-center">Actions</th>
+              <th className="px-6 py-4 text-sm font-semibold text-muted">Date</th>
+              <th className="px-6 py-4 text-sm font-semibold text-muted">Description</th>
+              <th className="px-6 py-4 text-sm font-semibold text-muted">Merchant</th>
+              <th className="px-6 py-4 text-sm font-semibold text-muted">Category</th>
+              <th className="px-6 py-4 text-sm font-semibold text-muted text-right">Amount</th>
+              <th className="px-6 py-4 text-sm font-semibold text-muted text-center">Actions</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-slate-100">
+          <tbody className="divide-y divide-border">
             {expenses.map((expense) => (
-              <tr key={expense.id} className="hover:bg-slate-50 transition-colors group">
-                <td className="px-6 py-4 text-sm text-slate-500">
+              <tr key={expense.id} className={`hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors group ${expense.isDebt ? 'bg-rose-50/30 dark:bg-rose-900/5' : ''}`}>
+                <td className="px-6 py-4 text-sm text-muted">
                   {format(new Date(expense.date), 'MMM dd, yyyy')}
                 </td>
-                <td className="px-6 py-4 text-sm font-medium">{expense.description}</td>
                 <td className="px-6 py-4">
-                  <span className="px-2 py-1 bg-slate-100 text-slate-600 text-xs font-medium rounded-full">
+                  <div className="flex flex-col">
+                    <span className="text-sm font-medium text-primary">{expense.description}</span>
+                    {expense.isDebt && <span className="text-[10px] font-bold text-rose-500 uppercase tracking-tighter">Debt</span>}
+                  </div>
+                </td>
+                <td className="px-6 py-4 text-sm text-muted italic">{expense.merchant || '-'}</td>
+                <td className="px-6 py-4">
+                  <span className="px-2 py-1 bg-slate-100 dark:bg-slate-800 text-muted text-xs font-medium rounded-full border border-border">
                     {expense.category}
                   </span>
                 </td>
-                <td className="px-6 py-4 text-sm font-bold text-right text-slate-900">
-                  {formatCurrency(expense.amount)}
+                <td className="px-6 py-4 text-sm font-bold text-right text-rose-600">
+                  -{formatCurrency(expense.amount)}
                 </td>
                 <td className="px-6 py-4 text-center">
                   <button 
@@ -999,7 +1355,7 @@ const ExpensesView: React.FC<{ expenses: Expense[]; userId: string; budgets: Bud
             ))}
             {expenses.length === 0 && (
               <tr>
-                <td colSpan={5} className="px-6 py-12 text-center text-slate-400">
+                <td colSpan={5} className="px-6 py-12 text-center text-muted">
                   No expenses recorded yet.
                 </td>
               </tr>
@@ -1011,7 +1367,12 @@ const ExpensesView: React.FC<{ expenses: Expense[]; userId: string; budgets: Bud
   );
 };
 
-const IncomeView: React.FC<{ incomes: Income[]; userId: string; formatCurrency: (amount: number) => string }> = ({ incomes, userId, formatCurrency }) => {
+const IncomeView: React.FC<{ 
+  incomes: Income[]; 
+  userId: string; 
+  formatCurrency: (amount: number) => string;
+  totalIncome: number;
+}> = ({ incomes, userId, formatCurrency, totalIncome }) => {
   const [isAdding, setIsAdding] = useState(false);
   const [description, setDescription] = useState('');
   const [amount, setAmount] = useState('');
@@ -1047,43 +1408,48 @@ const IncomeView: React.FC<{ incomes: Income[]; userId: string; formatCurrency: 
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <h1 className="text-3xl font-bold tracking-tight">Income</h1>
-        <button onClick={() => setIsAdding(!isAdding)} className="btn-primary flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div className="flex items-center gap-3">
+          <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-primary">Income</h1>
+          <span className="px-3 py-1 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 text-sm font-bold rounded-full border border-emerald-100 dark:border-emerald-900/30">
+            {formatCurrency(totalIncome)}
+          </span>
+        </div>
+        <button onClick={() => setIsAdding(!isAdding)} className="w-full sm:w-auto btn-primary flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700">
           <Plus className="w-5 h-5" />
           Add Income
         </button>
       </div>
 
       {isAdding && (
-        <div className="card border-2 border-emerald-100 animate-in fade-in slide-in-from-top-4">
+        <div className="card border-2 border-emerald-100 dark:border-emerald-900/30 animate-in fade-in slide-in-from-top-4">
           <form onSubmit={handleAddIncome} className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
             <div className="space-y-2">
-              <label className="text-sm font-medium text-slate-600">Description</label>
+              <label className="text-sm font-medium text-muted">Description</label>
               <input 
                 type="text" 
                 value={description} 
                 onChange={(e) => setDescription(e.target.value)}
-                className="w-full p-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none"
+                className="w-full p-2 border border-border bg-card text-primary rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none"
                 placeholder="Salary, Bonus, etc."
               />
             </div>
             <div className="space-y-2">
-              <label className="text-sm font-medium text-slate-600">Amount (NGN)</label>
+              <label className="text-sm font-medium text-muted">Amount</label>
               <input 
                 type="number" 
                 value={amount} 
                 onChange={(e) => setAmount(e.target.value)}
-                className="w-full p-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none"
+                className="w-full p-2 border border-border bg-card text-primary rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none"
                 placeholder="0.00"
               />
             </div>
             <div className="space-y-2">
-              <label className="text-sm font-medium text-slate-600">Source</label>
+              <label className="text-sm font-medium text-muted">Source</label>
               <select 
                 value={source} 
                 onChange={(e) => setSource(e.target.value)}
-                className="w-full p-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none"
+                className="w-full p-2 border border-border bg-card text-primary rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none"
               >
                 {INCOME_SOURCES.map(s => <option key={s} value={s}>{s}</option>)}
               </select>
@@ -1098,24 +1464,24 @@ const IncomeView: React.FC<{ incomes: Income[]; userId: string; formatCurrency: 
 
       <div className="card p-0 overflow-hidden overflow-x-auto">
         <table className="w-full text-left min-w-[600px]">
-          <thead className="bg-slate-50 border-b border-slate-200">
+          <thead className="bg-slate-50 dark:bg-slate-800/50 border-b border-border">
             <tr>
-              <th className="px-6 py-4 text-sm font-semibold text-slate-600">Date</th>
-              <th className="px-6 py-4 text-sm font-semibold text-slate-600">Description</th>
-              <th className="px-6 py-4 text-sm font-semibold text-slate-600">Source</th>
-              <th className="px-6 py-4 text-sm font-semibold text-slate-600 text-right">Amount</th>
-              <th className="px-6 py-4 text-sm font-semibold text-slate-600 text-center">Actions</th>
+              <th className="px-6 py-4 text-sm font-semibold text-muted">Date</th>
+              <th className="px-6 py-4 text-sm font-semibold text-muted">Description</th>
+              <th className="px-6 py-4 text-sm font-semibold text-muted">Source</th>
+              <th className="px-6 py-4 text-sm font-semibold text-muted text-right">Amount</th>
+              <th className="px-6 py-4 text-sm font-semibold text-muted text-center">Actions</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-slate-100">
+          <tbody className="divide-y divide-border">
             {incomes.map((income) => (
-              <tr key={income.id} className="hover:bg-slate-50 transition-colors group">
-                <td className="px-6 py-4 text-sm text-slate-500">
+              <tr key={income.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors group">
+                <td className="px-6 py-4 text-sm text-muted">
                   {format(new Date(income.date), 'MMM dd, yyyy')}
                 </td>
-                <td className="px-6 py-4 text-sm font-medium">{income.description}</td>
+                <td className="px-6 py-4 text-sm font-medium text-primary">{income.description}</td>
                 <td className="px-6 py-4">
-                  <span className="px-2 py-1 bg-emerald-100 text-emerald-600 text-xs font-medium rounded-full">
+                  <span className="px-2 py-1 bg-emerald-100 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 text-xs font-medium rounded-full border border-emerald-200 dark:border-emerald-900/30">
                     {income.source}
                   </span>
                 </td>
@@ -1134,7 +1500,7 @@ const IncomeView: React.FC<{ incomes: Income[]; userId: string; formatCurrency: 
             ))}
             {incomes.length === 0 && (
               <tr>
-                <td colSpan={5} className="px-6 py-12 text-center text-slate-400">
+                <td colSpan={5} className="px-6 py-12 text-center text-muted">
                   No income records yet.
                 </td>
               </tr>
@@ -1146,10 +1512,16 @@ const IncomeView: React.FC<{ incomes: Income[]; userId: string; formatCurrency: 
   );
 };
 
-const BudgetsView: React.FC<{ budgets: Budget[]; userId: string; formatCurrency: (amount: number) => string }> = ({ budgets, userId, formatCurrency }) => {
+const BudgetsView: React.FC<{ 
+  budgets: Budget[]; 
+  expenses: Expense[];
+  userId: string; 
+  formatCurrency: (amount: number) => string;
+}> = ({ budgets, expenses, userId, formatCurrency }) => {
   const [isAdding, setIsAdding] = useState(false);
   const [category, setCategory] = useState(CATEGORIES[0]);
   const [limit, setLimit] = useState('');
+  const [isRecurring, setIsRecurring] = useState(false);
 
   const currentMonth = new Date().getMonth() + 1;
   const currentYear = new Date().getFullYear();
@@ -1163,17 +1535,22 @@ const BudgetsView: React.FC<{ budgets: Budget[]; userId: string; formatCurrency:
     try {
       const existing = budgets.find(b => b.category === category && b.month === currentMonth && b.year === currentYear);
       if (existing) {
-        await updateDoc(doc(db, 'budgets', existing.id), { limit: parseFloat(limit) });
+        await updateDoc(doc(db, 'budgets', existing.id), { 
+          limit: parseFloat(limit),
+          isRecurring 
+        });
       } else {
         await addDoc(collection(db, 'budgets'), {
           userId,
           category,
           limit: parseFloat(limit),
           month: currentMonth,
-          year: currentYear
+          year: currentYear,
+          isRecurring
         });
       }
       setLimit('');
+      setIsRecurring(false);
       setIsAdding(false);
     } catch (error) {
       handleFirestoreError(error, OperationType.WRITE, 'budgets');
@@ -1183,7 +1560,7 @@ const BudgetsView: React.FC<{ budgets: Budget[]; userId: string; formatCurrency:
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <h1 className="text-2xl md:text-3xl font-bold tracking-tight">Budgets</h1>
+        <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-primary">Budgets</h1>
         <button onClick={() => setIsAdding(!isAdding)} className="w-full sm:w-auto btn-primary flex items-center justify-center gap-2">
           <Wallet className="w-5 h-5" />
           Set Budget
@@ -1191,27 +1568,36 @@ const BudgetsView: React.FC<{ budgets: Budget[]; userId: string; formatCurrency:
       </div>
 
       {isAdding && (
-        <div className="card border-2 border-emerald-100 animate-in fade-in slide-in-from-top-4">
-          <form onSubmit={handleSetBudget} className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
+        <div className="card border-2 border-emerald-100 dark:border-emerald-900/30 animate-in fade-in slide-in-from-top-4">
+          <form onSubmit={handleSetBudget} className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
             <div className="space-y-2">
-              <label className="text-sm font-medium text-slate-600">Category</label>
+              <label className="text-sm font-medium text-muted">Category</label>
               <select 
                 value={category} 
                 onChange={(e) => setCategory(e.target.value)}
-                className="w-full p-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none"
+                className="w-full p-2 border border-border bg-card text-primary rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none"
               >
                 {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
               </select>
             </div>
             <div className="space-y-2">
-              <label className="text-sm font-medium text-slate-600">Monthly Limit (NGN)</label>
+              <label className="text-sm font-medium text-muted">Monthly Limit</label>
               <input 
                 type="number" 
                 value={limit} 
                 onChange={(e) => setLimit(e.target.value)}
-                className="w-full p-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none"
+                className="w-full p-2 border border-border bg-card text-primary rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none"
                 placeholder="0.00"
               />
+            </div>
+            <div className="flex items-center gap-2 pb-2">
+              <input 
+                type="checkbox" 
+                checked={isRecurring} 
+                onChange={(e) => setIsRecurring(e.target.checked)}
+                className="w-4 h-4 rounded border-border text-emerald-600 focus:ring-emerald-500"
+              />
+              <span className="text-sm font-medium text-muted">Recurring Budget</span>
             </div>
             <div className="flex gap-2">
               <button type="submit" className="flex-1 btn-primary bg-emerald-600 hover:bg-emerald-700">Set Limit</button>
@@ -1222,25 +1608,63 @@ const BudgetsView: React.FC<{ budgets: Budget[]; userId: string; formatCurrency:
       )}
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
-        {monthlyBudgets.map((budget) => (
-          <div key={budget.id} className="card border-t-4 border-emerald-500">
-            <div className="flex justify-between items-start mb-4">
-              <h3 className="font-semibold text-lg">{budget.category}</h3>
-              <span className="text-xs font-medium text-slate-400 uppercase">{format(new Date(budget.year, budget.month - 1), 'MMM yyyy')}</span>
-            </div>
-            <div className="space-y-2">
-              <div className="flex justify-between text-sm">
-                <span className="text-slate-500">Monthly Limit</span>
-                <span className="font-bold">{formatCurrency(budget.limit)}</span>
+        {monthlyBudgets.map((budget) => {
+          const spent = expenses
+            .filter(e => e.category === budget.category && new Date(e.date).getMonth() + 1 === budget.month && new Date(e.date).getFullYear() === budget.year)
+            .reduce((sum, e) => sum + e.amount, 0);
+          const percent = Math.min(Math.round((spent / budget.limit) * 100), 100);
+          const isOver = spent > budget.limit;
+
+          return (
+            <div key={budget.id} className={`card border-t-4 ${isOver ? 'border-rose-500' : 'border-emerald-500'}`}>
+              <div className="flex justify-between items-start mb-4">
+                <div>
+                  <h3 className="font-semibold text-lg text-primary">{budget.category}</h3>
+                  {budget.isRecurring && (
+                    <span className="flex items-center gap-1 text-[10px] font-bold text-sky-600 uppercase tracking-wider">
+                      <Sparkles className="w-3 h-3" />
+                      Recurring
+                    </span>
+                  )}
+                </div>
+                <span className="text-xs font-medium text-muted uppercase">{format(new Date(budget.year, budget.month - 1), 'MMM yyyy')}</span>
               </div>
-              <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
-                <div className="bg-emerald-500 h-full" style={{ width: '100%' }}></div>
+              <div className="space-y-3">
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted">Spent: <span className={isOver ? 'text-rose-600 font-bold' : 'text-primary font-medium'}>{formatCurrency(spent)}</span></span>
+                  <span className="text-muted">Limit: <span className="font-bold text-primary">{formatCurrency(budget.limit)}</span></span>
+                </div>
+                <div className="w-full bg-slate-100 dark:bg-slate-800 h-2 rounded-full overflow-hidden">
+                  <div 
+                    className={`h-full transition-all duration-500 ${isOver ? 'bg-rose-500' : 'bg-emerald-500'}`} 
+                    style={{ width: `${percent}%` }}
+                  ></div>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className={`text-xs font-bold ${isOver ? 'text-rose-600' : 'text-emerald-600'}`}>
+                    {percent}% utilized
+                  </span>
+                  <button 
+                    onClick={async () => {
+                      if (confirm('Are you sure you want to delete this budget?')) {
+                        try {
+                          await deleteDoc(doc(db, 'budgets', budget.id));
+                        } catch (error) {
+                          handleFirestoreError(error, OperationType.DELETE, 'budgets');
+                        }
+                      }
+                    }}
+                    className="text-rose-500 hover:text-rose-600 p-1 rounded-lg hover:bg-rose-50 dark:hover:bg-rose-900/20 transition-colors"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </div>
               </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
         {monthlyBudgets.length === 0 && (
-          <div className="col-span-full py-12 text-center text-slate-400">
+          <div className="col-span-full py-12 text-center text-muted">
             No budgets set for this month.
           </div>
         )}
@@ -1268,11 +1692,11 @@ const AIAdviceView: React.FC<{ expenses: Expense[]; budgets: Budget[]; currencyC
     <div className="space-y-6">
       <header className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight flex items-center gap-2">
+          <h1 className="text-3xl font-bold tracking-tight flex items-center gap-2 text-primary">
             <Sparkles className="w-8 h-8 text-sky-500" />
             AI Budget Assistant
           </h1>
-          <p className="text-slate-500">Personalized financial insights powered by Gemini AI.</p>
+          <p className="text-muted">Personalized financial insights powered by Gemini AI.</p>
         </div>
         <button 
           onClick={fetchAdvice} 
@@ -1284,40 +1708,40 @@ const AIAdviceView: React.FC<{ expenses: Expense[]; budgets: Budget[]; currencyC
         </button>
       </header>
 
-      <div className="card bg-gradient-to-br from-sky-50 to-white border border-sky-100 min-h-[400px]">
+      <div className="card bg-gradient-to-br from-sky-50 to-white dark:from-sky-900/10 dark:to-card border border-sky-100 dark:border-sky-900/30 min-h-[400px]">
         {loading ? (
           <div className="flex flex-col items-center justify-center h-full space-y-4 py-20">
             <div className="w-12 h-12 border-4 border-sky-200 border-t-sky-500 rounded-full animate-spin"></div>
-            <p className="text-slate-500 font-medium">Analyzing your spending patterns...</p>
+            <p className="text-muted font-medium">Analyzing your spending patterns...</p>
           </div>
         ) : advice ? (
-          <div className="prose prose-sky max-w-none">
+          <div className="prose prose-sky dark:prose-invert max-w-none">
             <ReactMarkdown>{advice}</ReactMarkdown>
           </div>
         ) : (
           <div className="flex flex-col items-center justify-center h-full py-20 text-center space-y-4">
-            <AlertCircle className="w-12 h-12 text-slate-300" />
-            <p className="text-slate-500">Add some expenses to get personalized advice.</p>
+            <AlertCircle className="w-12 h-12 text-muted opacity-30" />
+            <p className="text-muted">Add some expenses to get personalized advice.</p>
           </div>
         )}
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="card bg-emerald-50 border-emerald-100">
-          <h4 className="font-semibold text-emerald-800 mb-2 flex items-center gap-2">
+        <div className="card bg-emerald-50 dark:bg-emerald-900/10 border-emerald-100 dark:border-emerald-900/30">
+          <h4 className="font-semibold text-emerald-800 dark:text-emerald-400 mb-2 flex items-center gap-2">
             <TrendingUp className="w-5 h-5" />
             Smart Tip
           </h4>
-          <p className="text-sm text-emerald-700">
+          <p className="text-sm text-emerald-700 dark:text-emerald-300">
             AI categorization helps you see exactly where your money goes without manual tagging. Just type a description!
           </p>
         </div>
-        <div className="card bg-amber-50 border-amber-100">
-          <h4 className="font-semibold text-amber-800 mb-2 flex items-center gap-2">
+        <div className="card bg-amber-50 dark:bg-amber-900/10 border-amber-100 dark:border-amber-900/30">
+          <h4 className="font-semibold text-amber-800 dark:text-amber-400 mb-2 flex items-center gap-2">
             <AlertCircle className="w-5 h-5" />
             Budget Alert
           </h4>
-          <p className="text-sm text-amber-700">
+          <p className="text-sm text-amber-700 dark:text-amber-300">
             Set monthly limits for each category to receive real-time warnings when you're close to exceeding them.
           </p>
         </div>
@@ -1330,6 +1754,8 @@ const ProfileView: React.FC<{ user: UserProfile; setUser: (u: UserProfile) => vo
   const [displayName, setDisplayName] = useState(user.displayName);
   const [photoURL, setPhotoURL] = useState(user.photoURL);
   const [email, setEmail] = useState(user.email);
+  const [theme, setTheme] = useState(user.theme || 'light');
+  const [showRecentTransactions, setShowRecentTransactions] = useState(user.showRecentTransactions ?? true);
   const [newPassword, setNewPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -1339,6 +1765,8 @@ const ProfileView: React.FC<{ user: UserProfile; setUser: (u: UserProfile) => vo
     setDisplayName(user.displayName);
     setPhotoURL(user.photoURL);
     setEmail(user.email);
+    setTheme(user.theme || 'light');
+    setShowRecentTransactions(user.showRecentTransactions ?? true);
   }, [user.uid]); // Only sync if the user ID is the same, or if it changes
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -1390,9 +1818,23 @@ const ProfileView: React.FC<{ user: UserProfile; setUser: (u: UserProfile) => vo
       }
 
       // Update Firestore
-      const updatedUser: UserProfile = { ...user, displayName, photoURL, email };
+      const updatedUser: UserProfile = { 
+        ...user, 
+        displayName, 
+        photoURL, 
+        email, 
+        theme, 
+        showRecentTransactions 
+      };
       await setDoc(doc(db, 'users', user.uid), updatedUser, { merge: true });
       
+      // Apply theme immediately
+      if (theme === 'dark') {
+        document.documentElement.classList.add('dark');
+      } else {
+        document.documentElement.classList.remove('dark');
+      }
+
       setUser(updatedUser);
 
       Swal.fire({
@@ -1421,14 +1863,14 @@ const ProfileView: React.FC<{ user: UserProfile; setUser: (u: UserProfile) => vo
             <UserIcon className="w-8 h-8 text-sky-500" />
             Profile Settings
           </h1>
-          <p className="text-slate-500 text-lg">Manage your account information and security.</p>
+          <p className="text-text-muted text-lg">Manage your account information and security.</p>
         </div>
       </header>
 
       <div className="card space-y-8">
-        <div className="flex flex-col md:flex-row items-center gap-8 pb-8 border-b border-slate-100">
+        <div className="flex flex-col md:flex-row items-center gap-8 pb-8 border-b border-border">
           <div className="relative group">
-            <div className="w-32 h-32 rounded-full bg-sky-100 flex items-center justify-center text-sky-700 font-bold border-4 border-white shadow-xl text-4xl overflow-hidden relative">
+            <div className="w-32 h-32 rounded-full bg-sky-100 dark:bg-sky-900/30 flex items-center justify-center text-sky-700 dark:text-sky-300 font-bold border-4 border-card shadow-xl text-4xl overflow-hidden relative">
               {photoURL ? (
                 <img src={photoURL} alt="Profile" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
               ) : (
@@ -1450,9 +1892,9 @@ const ProfileView: React.FC<{ user: UserProfile; setUser: (u: UserProfile) => vo
             />
           </div>
           <div className="flex-1 text-center md:text-left">
-            <h2 className="text-2xl font-bold">{displayName || 'User'}</h2>
-            <p className="text-slate-500">{email}</p>
-            <p className="text-xs text-slate-400 mt-1 uppercase tracking-widest font-bold">
+            <h2 className="text-2xl font-bold text-text-primary">{displayName || 'User'}</h2>
+            <p className="text-text-muted">{email}</p>
+            <p className="text-xs text-text-muted mt-1 uppercase tracking-widest font-bold">
               Member since {new Date(user.createdAt).toLocaleDateString()}
             </p>
           </div>
@@ -1461,43 +1903,43 @@ const ProfileView: React.FC<{ user: UserProfile; setUser: (u: UserProfile) => vo
         <form onSubmit={handleUpdateProfile} className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-2">
-              <label className="text-sm font-bold text-slate-500 uppercase tracking-wider">Full Name</label>
+              <label className="text-sm font-bold text-text-muted uppercase tracking-wider">Full Name</label>
               <div className="relative">
-                <UserIcon className="absolute left-3 top-3 w-5 h-5 text-slate-400" />
+                <UserIcon className="absolute left-3 top-3 w-5 h-5 text-text-muted" />
                 <input 
                   type="text"
                   value={displayName}
                   onChange={(e) => setDisplayName(e.target.value)}
-                  className="w-full pl-10 pr-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-sky-500 outline-none transition-all"
+                  className="w-full pl-10 pr-4 py-3 border border-border bg-card text-text-primary rounded-xl focus:ring-2 focus:ring-sky-500 outline-none transition-all"
                   placeholder="Your Name"
                 />
               </div>
             </div>
 
             <div className="space-y-2">
-              <label className="text-sm font-bold text-slate-500 uppercase tracking-wider">Email Address</label>
+              <label className="text-sm font-bold text-text-muted uppercase tracking-wider">Email Address</label>
               <div className="relative">
-                <Mail className="absolute left-3 top-3 w-5 h-5 text-slate-400" />
+                <Mail className="absolute left-3 top-3 w-5 h-5 text-text-muted" />
                 <input 
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full pl-10 pr-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-sky-500 outline-none transition-all"
+                  className="w-full pl-10 pr-4 py-3 border border-border bg-card text-text-primary rounded-xl focus:ring-2 focus:ring-sky-500 outline-none transition-all"
                   placeholder="Email"
                 />
               </div>
             </div>
 
             <div className="space-y-2">
-              <label className="text-sm font-bold text-slate-500 uppercase tracking-wider">Profile Picture URL</label>
+              <label className="text-sm font-bold text-text-muted uppercase tracking-wider">Profile Picture URL</label>
               <div className="flex gap-2">
                 <div className="relative flex-1">
-                  <Sparkles className="absolute left-3 top-3 w-5 h-5 text-slate-400" />
+                  <Sparkles className="absolute left-3 top-3 w-5 h-5 text-text-muted" />
                   <input 
                     type="text"
                     value={photoURL?.startsWith('data:image') ? 'Local Image Uploaded' : photoURL}
                     onChange={(e) => setPhotoURL(e.target.value)}
-                    className="w-full pl-10 pr-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-sky-500 outline-none transition-all"
+                    className="w-full pl-10 pr-4 py-3 border border-border bg-card text-text-primary rounded-xl focus:ring-2 focus:ring-sky-500 outline-none transition-all"
                     placeholder="https://example.com/photo.jpg"
                     readOnly={photoURL?.startsWith('data:image')}
                   />
@@ -1514,7 +1956,7 @@ const ProfileView: React.FC<{ user: UserProfile; setUser: (u: UserProfile) => vo
                 <button
                   type="button"
                   onClick={() => fileInputRef.current?.click()}
-                  className="px-4 py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl transition-colors flex items-center gap-2 font-medium"
+                  className="px-4 py-3 bg-card hover:bg-slate-100 dark:hover:bg-slate-800 text-text-primary border border-border rounded-xl transition-colors flex items-center gap-2 font-medium"
                   title="Upload from computer"
                 >
                   <Camera className="w-5 h-5" />
@@ -1524,25 +1966,79 @@ const ProfileView: React.FC<{ user: UserProfile; setUser: (u: UserProfile) => vo
             </div>
 
             <div className="space-y-2">
-              <label className="text-sm font-bold text-slate-500 uppercase tracking-wider">New Password (Optional)</label>
+              <label className="text-sm font-bold text-text-muted uppercase tracking-wider">New Password (Optional)</label>
               <div className="relative">
-                <Lock className="absolute left-3 top-3 w-5 h-5 text-slate-400" />
+                <Lock className="absolute left-3 top-3 w-5 h-5 text-text-muted" />
                 <input 
                   type="password"
                   value={newPassword}
                   onChange={(e) => setNewPassword(e.target.value)}
-                  className="w-full pl-10 pr-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-sky-500 outline-none transition-all"
+                  className="w-full pl-10 pr-4 py-3 border border-border bg-card text-text-primary rounded-xl focus:ring-2 focus:ring-sky-500 outline-none transition-all"
                   placeholder="Leave blank to keep current"
                 />
               </div>
             </div>
           </div>
 
-          <div className="pt-6 border-t border-slate-100 flex justify-end">
+          <div className="pt-8 border-t border-border space-y-6">
+            <h3 className="text-xl font-bold flex items-center gap-2 text-text-primary">
+              <Settings className="w-6 h-6 text-text-muted" />
+              Preferences
+            </h3>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              <div className="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-900/50 rounded-2xl border border-border col-span-full">
+                <div className="space-y-1">
+                  <p className="font-bold text-text-primary">Color Theme</p>
+                  <p className="text-xs text-text-muted">Choose your preferred accent color.</p>
+                </div>
+                <div className="flex gap-2">
+                  {(['light', 'dark', 'emerald', 'rose', 'sky'] as const).map((t) => (
+                    <button
+                      key={t}
+                      type="button"
+                      onClick={() => setTheme(t)}
+                      className={`w-8 h-8 rounded-full border-2 transition-all ${
+                        theme === t ? 'border-sky-500 scale-110 ring-2 ring-sky-200 dark:ring-sky-900/40' : 'border-transparent'
+                      } ${
+                        t === 'light' ? 'bg-white' : 
+                        t === 'dark' ? 'bg-slate-900' : 
+                        t === 'emerald' ? 'bg-emerald-500' : 
+                        t === 'rose' ? 'bg-rose-500' : 'bg-sky-500'
+                      }`}
+                      title={t.charAt(0).toUpperCase() + t.slice(1)}
+                    />
+                  ))}
+                </div>
+              </div>
+
+              <div className="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-900/50 rounded-2xl border border-border">
+                <div className="space-y-1">
+                  <p className="font-bold text-text-primary">Recent Transactions</p>
+                  <p className="text-xs text-text-muted">Show recent activity on the dashboard.</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setShowRecentTransactions(!showRecentTransactions)}
+                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${
+                    showRecentTransactions ? 'bg-sky-600' : 'bg-slate-300 dark:bg-slate-700'
+                  }`}
+                >
+                  <span
+                    className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                      showRecentTransactions ? 'translate-x-6' : 'translate-x-1'
+                    }`}
+                  />
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div className="pt-6 border-t border-border flex justify-end">
             <button 
               type="submit"
               disabled={loading}
-              className="btn-primary px-8 py-3 font-bold shadow-lg shadow-sky-100 disabled:opacity-50 flex items-center gap-2"
+              className="btn-primary px-8 py-3 font-bold shadow-lg shadow-sky-100 dark:shadow-none disabled:opacity-50 flex items-center gap-2"
             >
               {loading ? (
                 <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
@@ -1555,7 +2051,7 @@ const ProfileView: React.FC<{ user: UserProfile; setUser: (u: UserProfile) => vo
         </form>
       </div>
 
-      <div className="card bg-amber-50 border-amber-100">
+      <div className="card bg-amber-50 dark:bg-amber-900/10 border-amber-100 dark:border-amber-900/20">
         <h3 className="font-bold text-amber-800 flex items-center gap-2 mb-2">
           <AlertCircle className="w-5 h-5" />
           Security Note

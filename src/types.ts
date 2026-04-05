@@ -6,6 +6,8 @@ export interface UserProfile {
   createdAt: string;
   currency?: string;
   onboarded?: boolean;
+  theme?: 'light' | 'dark' | 'emerald' | 'rose' | 'sky';
+  showRecentTransactions?: boolean;
 }
 
 export interface Currency {
@@ -28,6 +30,8 @@ export interface Expense {
   category: string;
   date: string;
   description: string;
+  merchant?: string;
+  isDebt?: boolean;
   aiCategorized: boolean;
 }
 
@@ -38,6 +42,7 @@ export interface Budget {
   limit: number;
   month: number;
   year: number;
+  isRecurring?: boolean;
 }
 
 export interface Income {
