@@ -37,3 +37,31 @@ export async function getBudgetAdvice(expenses: any[], budgets: any[], currencyC
     return "Unable to provide budget advice right now.";
   }
 }
+
+export async function getChatResponse(messages: { role: 'user' | 'assistant', content: string }[], expenses: any[], budgets: any[], currencyCode: string, currencySymbol: string) {
+  try {
+    const contents = messages.map(m => ({
+      role: m.role === 'user' ? 'user' : 'model',
+      parts: [{ text: m.content }]
+    }));
+
+    const response = await ai.models.generateContent({
+      model: "gemini-3-flash-preview",
+      contents,
+      config: {
+        systemInstruction: `You are Finova, a helpful financial advisor. 
+        The user's current monthly expenses are: ${JSON.stringify(expenses)}. 
+        Their budget limits are: ${JSON.stringify(budgets)}. 
+        Their preferred currency is ${currencyCode} (${currencySymbol}). 
+        Provide concise, actionable financial advice. 
+        Be conversational and helpful. 
+        Format your responses in Markdown. 
+        Do NOT use any emojis in your response.`,
+      },
+    });
+    return response.text || "I'm sorry, I couldn't process that.";
+  } catch (error) {
+    console.error("Gemini Chat Error:", error);
+    return "I'm having trouble connecting right now. Please try again later.";
+  }
+}

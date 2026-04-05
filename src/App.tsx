@@ -1,12 +1,12 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { 
   db, auth,
-  collection, query, where, onSnapshot, addDoc, updateDoc, deleteDoc, doc, setDoc, getDoc,
-  createUserWithEmailAndPassword, signInWithEmailAndPassword, sendPasswordResetEmail, signOut, onAuthStateChanged, updateProfile, updateEmail, updatePassword,
+  collection, query, where, onSnapshot, addDoc, updateDoc, deleteDoc, doc, setDoc, getDoc, getDocs,
+  createUserWithEmailAndPassword, signInWithEmailAndPassword, sendPasswordResetEmail, signOut, onAuthStateChanged, updateProfile, updateEmail, updatePassword, deleteUser,
   OperationType, handleFirestoreError
 } from './firebase';
 import { UserProfile, Expense, Budget, Income, CATEGORIES, INCOME_SOURCES, CURRENCIES, Currency } from './types';
-import { categorizeExpense, getBudgetAdvice } from './services/geminiService';
+import { categorizeExpense, getBudgetAdvice, getChatResponse } from './services/geminiService';
 import { 
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, 
   PieChart, Pie, Cell, LineChart, Line
@@ -752,7 +752,7 @@ const Dashboard: React.FC<{
 
   const totalSpent = monthlyExpenses.reduce((sum, e) => sum + e.amount, 0);
   const totalIncome = monthlyIncomes.reduce((sum, i) => sum + i.amount, 0);
-  const currentBalance = totalIncome - totalSpent;
+  const currentBalance = totalIncome - totalSpent + prevClosingBalance;
   
   const totalBudget = budgets
     .filter(b => b.month === selectedMonth && b.year === selectedYear)
@@ -981,7 +981,7 @@ const Dashboard: React.FC<{
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-8">
-        <div className="card">
+        <div className="card bg-card border border-border">
           <h3 className="text-lg font-semibold mb-6 flex items-center gap-2 text-primary">
             <TrendingUp className="w-5 h-5 text-sky-500" />
             Spending vs Budget
@@ -1007,7 +1007,7 @@ const Dashboard: React.FC<{
           </div>
         </div>
 
-        <div className="card">
+        <div className="card bg-card border border-border">
           <h3 className="text-lg font-semibold mb-6 flex items-center gap-2 text-primary">
             <PieIcon className="w-5 h-5 text-emerald-500" />
             Expense Distribution
@@ -1042,9 +1042,72 @@ const Dashboard: React.FC<{
         </div>
       </div>
 
-      {/* Motivation & Recent Transactions */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8">
-        <div className="lg:col-span-1 space-y-6">
+      {/* Recent Transactions & Motivation */}
+      <div className="space-y-6 md:space-y-8">
+        {showRecentTransactions && (
+          <div className="card bg-card border border-border">
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-lg font-semibold flex items-center gap-2 text-primary">
+                <FileText className="w-5 h-5 text-muted" />
+                Recent Transactions
+              </h3>
+              <button 
+                onClick={() => setIsRecentExpanded(!isRecentExpanded)}
+                className="text-xs font-bold text-sky-600 hover:text-sky-700 uppercase tracking-wider"
+              >
+                {isRecentExpanded ? 'Show Less' : 'Show More'}
+              </button>
+            </div>
+            <div className="overflow-x-auto">
+              <table className="w-full text-left">
+                <thead>
+                  <tr className="border-b border-border">
+                    <th className="pb-4 text-xs font-bold text-muted uppercase tracking-wider">Date</th>
+                    <th className="pb-4 text-xs font-bold text-muted uppercase tracking-wider">Description</th>
+                    <th className="pb-4 text-xs font-bold text-muted uppercase tracking-wider text-right">Amount</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-border">
+                  {recentTransactions.length > 0 ? (
+                    recentTransactions.slice(0, isRecentExpanded ? 10 : 5).map((tx: any) => (
+                      <tr key={tx.id} className="group hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
+                        <td className="py-4 text-sm text-muted">
+                          {format(new Date(tx.date), 'MMM d')}
+                        </td>
+                        <td className="py-4">
+                          <div className="flex items-center gap-3">
+                            <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${
+                              tx.type === 'income' ? 'bg-emerald-100 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400' : 'bg-rose-100 dark:bg-rose-900/20 text-rose-600 dark:text-rose-400'
+                            }`}>
+                              {tx.type === 'income' ? <ArrowUpRight className="w-4 h-4" /> : <ArrowDownRight className="w-4 h-4" />}
+                            </div>
+                            <div className="flex flex-col">
+                              <span className="text-sm font-medium text-primary">{tx.description}</span>
+                              <span className="text-[10px] text-muted uppercase font-bold">{tx.type === 'income' ? tx.source : tx.category}</span>
+                            </div>
+                          </div>
+                        </td>
+                        <td className={`py-4 text-sm font-bold text-right ${
+                          tx.type === 'income' ? 'text-emerald-600' : 'text-rose-600'
+                        }`}>
+                          {tx.type === 'income' ? '+' : '-'}{formatCurrency(tx.amount)}
+                        </td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td colSpan={3} className="py-8 text-center text-muted text-sm italic">
+                        No recent transactions found.
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-8">
           <div className="card bg-gradient-to-br from-sky-500 to-sky-600 text-white border-none shadow-lg shadow-sky-200 dark:shadow-none">
             <div className="flex items-center gap-3 mb-4">
               <Sparkles className="w-6 h-6 text-sky-200" />
@@ -1058,7 +1121,7 @@ const Dashboard: React.FC<{
             </div>
           </div>
 
-          <div className="card border-l-4 border-emerald-500">
+          <div className="card border-l-4 border-emerald-500 bg-card">
             <h3 className="font-bold text-primary mb-2 flex items-center gap-2">
               <TrendingUp className="w-5 h-5 text-emerald-500" />
               Financial Health
@@ -1067,71 +1130,6 @@ const Dashboard: React.FC<{
               You've saved <span className="font-bold text-emerald-600">{formatCurrency(currentBalance > 0 ? currentBalance : 0)}</span> this month. Keep it up!
             </p>
           </div>
-        </div>
-
-        <div className="lg:col-span-2">
-          {showRecentTransactions && (
-            <div className="card h-full">
-              <div className="flex items-center justify-between mb-6">
-                <h3 className="text-lg font-semibold flex items-center gap-2 text-primary">
-                  <FileText className="w-5 h-5 text-muted" />
-                  Recent Transactions
-                </h3>
-                <button 
-                  onClick={() => setIsRecentExpanded(!isRecentExpanded)}
-                  className="text-xs font-bold text-sky-600 hover:text-sky-700 uppercase tracking-wider"
-                >
-                  {isRecentExpanded ? 'Show Less' : 'Show More'}
-                </button>
-              </div>
-              <div className="overflow-x-auto">
-                <table className="w-full text-left">
-                  <thead>
-                    <tr className="border-b border-border">
-                      <th className="pb-4 text-xs font-bold text-muted uppercase tracking-wider">Date</th>
-                      <th className="pb-4 text-xs font-bold text-muted uppercase tracking-wider">Description</th>
-                      <th className="pb-4 text-xs font-bold text-muted uppercase tracking-wider text-right">Amount</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-border">
-                    {recentTransactions.length > 0 ? (
-                      recentTransactions.slice(0, isRecentExpanded ? 10 : 5).map((tx: any) => (
-                        <tr key={tx.id} className="group hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
-                          <td className="py-4 text-sm text-muted">
-                            {format(new Date(tx.date), 'MMM d')}
-                          </td>
-                          <td className="py-4">
-                            <div className="flex items-center gap-3">
-                              <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${
-                                tx.type === 'income' ? 'bg-emerald-100 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400' : 'bg-rose-100 dark:bg-rose-900/20 text-rose-600 dark:text-rose-400'
-                              }`}>
-                                {tx.type === 'income' ? <ArrowUpRight className="w-4 h-4" /> : <ArrowDownRight className="w-4 h-4" />}
-                              </div>
-                              <div className="flex flex-col">
-                                <span className="text-sm font-medium text-primary">{tx.description}</span>
-                                <span className="text-[10px] text-muted uppercase font-bold">{tx.type === 'income' ? tx.source : tx.category}</span>
-                              </div>
-                            </div>
-                          </td>
-                          <td className={`py-4 text-sm font-bold text-right ${
-                            tx.type === 'income' ? 'text-emerald-600' : 'text-rose-600'
-                          }`}>
-                            {tx.type === 'income' ? '+' : '-'}{formatCurrency(tx.amount)}
-                          </td>
-                        </tr>
-                      ))
-                    ) : (
-                      <tr>
-                        <td colSpan={3} className="py-8 text-center text-muted text-sm italic">
-                          No recent transactions found.
-                        </td>
-                      </tr>
-                    )}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          )}
         </div>
       </div>
     </div>
@@ -1150,7 +1148,6 @@ const ExpensesView: React.FC<{
   const [description, setDescription] = useState('');
   const [amount, setAmount] = useState('');
   const [merchant, setMerchant] = useState('');
-  const [isDebt, setIsDebt] = useState(false);
   const [category, setCategory] = useState(CATEGORIES[0]);
   const [isAiLoading, setIsAiLoading] = useState(false);
 
@@ -1178,7 +1175,6 @@ const ExpensesView: React.FC<{
         userId,
         description,
         merchant,
-        isDebt,
         amount: expenseAmount,
         category,
         date: new Date().toISOString(),
@@ -1206,7 +1202,6 @@ const ExpensesView: React.FC<{
       setDescription('');
       setAmount('');
       setMerchant('');
-      setIsDebt(false);
       setIsAdding(false);
     } catch (error) {
       handleFirestoreError(error, OperationType.CREATE, 'expenses');
@@ -1292,15 +1287,6 @@ const ExpensesView: React.FC<{
               </select>
             </div>
             <div className="flex flex-col gap-2">
-              <label className="flex items-center gap-2 cursor-pointer py-2">
-                <input 
-                  type="checkbox" 
-                  checked={isDebt} 
-                  onChange={(e) => setIsDebt(e.target.checked)}
-                  className="w-4 h-4 rounded border-border text-sky-600 focus:ring-sky-500"
-                />
-                <span className="text-sm font-medium text-muted">Track as Debt</span>
-              </label>
               <div className="flex gap-2">
                 <button type="submit" className="flex-1 btn-primary">Save</button>
                 <button type="button" onClick={() => setIsAdding(false)} className="btn-secondary">Cancel</button>
@@ -1324,14 +1310,14 @@ const ExpensesView: React.FC<{
           </thead>
           <tbody className="divide-y divide-border">
             {expenses.map((expense) => (
-              <tr key={expense.id} className={`hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors group ${expense.isDebt ? 'bg-rose-50/30 dark:bg-rose-900/5' : ''}`}>
+              <tr key={expense.id} className={`hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors group ${expense.category === 'Debt' ? 'bg-rose-50/30 dark:bg-rose-900/5' : ''}`}>
                 <td className="px-6 py-4 text-sm text-muted">
                   {format(new Date(expense.date), 'MMM dd, yyyy')}
                 </td>
                 <td className="px-6 py-4">
                   <div className="flex flex-col">
                     <span className="text-sm font-medium text-primary">{expense.description}</span>
-                    {expense.isDebt && <span className="text-[10px] font-bold text-rose-500 uppercase tracking-tighter">Debt</span>}
+                    {expense.category === 'Debt' && <span className="text-[10px] font-bold text-rose-500 uppercase tracking-tighter">Debt</span>}
                   </div>
                 </td>
                 <td className="px-6 py-4 text-sm text-muted italic">{expense.merchant || '-'}</td>
@@ -1674,77 +1660,126 @@ const BudgetsView: React.FC<{
 };
 
 const AIAdviceView: React.FC<{ expenses: Expense[]; budgets: Budget[]; currencyCode: string; currencySymbol: string }> = ({ expenses, budgets, currencyCode, currencySymbol }) => {
-  const [advice, setAdvice] = useState<string>('');
+  const [messages, setMessages] = useState<{ role: 'user' | 'assistant', content: string }[]>([]);
+  const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
+  const scrollRef = useRef<HTMLDivElement>(null);
 
-  const fetchAdvice = async () => {
+  const fetchInitialAdvice = async () => {
+    if (expenses.length === 0) return;
     setLoading(true);
-    const result = await getBudgetAdvice(expenses.slice(0, 20), budgets, currencyCode, currencySymbol);
-    setAdvice(result);
-    setLoading(false);
+    try {
+      const advice = await getBudgetAdvice(expenses.slice(0, 20), budgets, currencyCode, currencySymbol);
+      setMessages([{ role: 'assistant', content: advice }]);
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
-    if (expenses.length > 0) fetchAdvice();
+    fetchInitialAdvice();
   }, []);
 
+  useEffect(() => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+    }
+  }, [messages]);
+
+  const handleSendMessage = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!input.trim() || loading) return;
+
+    const userMessage = input.trim();
+    const newMessages = [...messages, { role: 'user' as const, content: userMessage }];
+    setMessages(newMessages);
+    setInput('');
+    setLoading(true);
+
+    try {
+      const response = await getChatResponse(newMessages, expenses.slice(0, 20), budgets, currencyCode, currencySymbol);
+      setMessages([...newMessages, { role: 'assistant' as const, content: response }]);
+    } catch (error) {
+      console.error(error);
+      setMessages([...newMessages, { role: 'assistant' as const, content: "I'm sorry, I encountered an error. Please try again." }]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
-    <div className="space-y-6">
-      <header className="flex justify-between items-center">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight flex items-center gap-2 text-primary">
-            <Sparkles className="w-8 h-8 text-sky-500" />
-            AI Budget Assistant
-          </h1>
-          <p className="text-muted">Personalized financial insights powered by Gemini AI.</p>
-        </div>
-        <button 
-          onClick={fetchAdvice} 
-          disabled={loading}
-          className="btn-primary flex items-center gap-2 disabled:opacity-50"
-        >
-          <Sparkles className={`w-5 h-5 ${loading ? 'animate-spin' : ''}`} />
-          Refresh Advice
-        </button>
+    <div className="flex flex-col h-[calc(100vh-12rem)] space-y-4">
+      <header>
+        <h1 className="text-3xl font-bold tracking-tight flex items-center gap-2 text-primary">
+          <Sparkles className="w-8 h-8 text-sky-500" />
+          AI Financial Advisor
+        </h1>
+        <p className="text-muted">Chat with Finova for personalized financial insights.</p>
       </header>
 
-      <div className="card bg-gradient-to-br from-sky-50 to-white dark:from-sky-900/10 dark:to-card border border-sky-100 dark:border-sky-900/30 min-h-[400px]">
-        {loading ? (
-          <div className="flex flex-col items-center justify-center h-full space-y-4 py-20">
-            <div className="w-12 h-12 border-4 border-sky-200 border-t-sky-500 rounded-full animate-spin"></div>
-            <p className="text-muted font-medium">Analyzing your spending patterns...</p>
-          </div>
-        ) : advice ? (
-          <div className="prose prose-sky dark:prose-invert max-w-none">
-            <ReactMarkdown>{advice}</ReactMarkdown>
-          </div>
-        ) : (
-          <div className="flex flex-col items-center justify-center h-full py-20 text-center space-y-4">
-            <AlertCircle className="w-12 h-12 text-muted opacity-30" />
-            <p className="text-muted">Add some expenses to get personalized advice.</p>
-          </div>
-        )}
-      </div>
+      <div className="flex-1 overflow-hidden flex flex-col card p-0 bg-card border border-border shadow-sm">
+        <div 
+          ref={scrollRef}
+          className="flex-1 overflow-y-auto p-4 md:p-6 space-y-6 scroll-smooth"
+        >
+          {messages.length === 0 && !loading && (
+            <div className="flex flex-col items-center justify-center h-full text-center space-y-4 opacity-50">
+              <Sparkles className="w-12 h-12 text-sky-500" />
+              <p className="text-lg font-medium">Ask me anything about your finances!</p>
+            </div>
+          )}
+          
+          {messages.map((msg, idx) => (
+            <div 
+              key={idx} 
+              className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'} animate-in fade-in slide-in-from-bottom-2 duration-300`}
+            >
+              <div className={`max-w-[85%] md:max-w-[75%] rounded-2xl p-4 ${
+                msg.role === 'user' 
+                  ? 'bg-sky-600 text-white rounded-tr-none' 
+                  : 'bg-slate-100 dark:bg-slate-800 text-primary rounded-tl-none border border-border'
+              }`}>
+                <div className="prose prose-sm dark:prose-invert max-w-none prose-p:leading-relaxed">
+                  <ReactMarkdown>{msg.content}</ReactMarkdown>
+                </div>
+              </div>
+            </div>
+          ))}
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="card bg-emerald-50 dark:bg-emerald-900/10 border-emerald-100 dark:border-emerald-900/30">
-          <h4 className="font-semibold text-emerald-800 dark:text-emerald-400 mb-2 flex items-center gap-2">
-            <TrendingUp className="w-5 h-5" />
-            Smart Tip
-          </h4>
-          <p className="text-sm text-emerald-700 dark:text-emerald-300">
-            AI categorization helps you see exactly where your money goes without manual tagging. Just type a description!
-          </p>
+          {loading && (
+            <div className="flex justify-start animate-pulse">
+              <div className="bg-slate-100 dark:bg-slate-800 rounded-2xl rounded-tl-none p-4 border border-border">
+                <div className="flex gap-1">
+                  <div className="w-2 h-2 bg-sky-500 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+                  <div className="w-2 h-2 bg-sky-500 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
+                  <div className="w-2 h-2 bg-sky-500 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+                </div>
+              </div>
+            </div>
+          )}
         </div>
-        <div className="card bg-amber-50 dark:bg-amber-900/10 border-amber-100 dark:border-amber-900/30">
-          <h4 className="font-semibold text-amber-800 dark:text-amber-400 mb-2 flex items-center gap-2">
-            <AlertCircle className="w-5 h-5" />
-            Budget Alert
-          </h4>
-          <p className="text-sm text-amber-700 dark:text-amber-300">
-            Set monthly limits for each category to receive real-time warnings when you're close to exceeding them.
-          </p>
-        </div>
+
+        <form onSubmit={handleSendMessage} className="p-4 border-t border-border bg-slate-50/50 dark:bg-slate-900/50">
+          <div className="flex gap-2">
+            <input
+              type="text"
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              placeholder="Ask about your spending, budgets, or for financial tips..."
+              className="flex-1 bg-card border border-border rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-sky-500 transition-all text-sm"
+              disabled={loading}
+            />
+            <button 
+              type="submit" 
+              disabled={loading || !input.trim()}
+              className="btn-primary p-3 disabled:opacity-50 flex items-center justify-center"
+            >
+              <ArrowRight className="w-5 h-5" />
+            </button>
+          </div>
+        </form>
       </div>
     </div>
   );
@@ -1992,22 +2027,21 @@ const ProfileView: React.FC<{ user: UserProfile; setUser: (u: UserProfile) => vo
                   <p className="font-bold text-text-primary">Color Theme</p>
                   <p className="text-xs text-text-muted">Choose your preferred accent color.</p>
                 </div>
-                <div className="flex gap-2">
-                  {(['light', 'dark', 'emerald', 'rose', 'sky'] as const).map((t) => (
+                <div className="flex gap-4">
+                  {(['light', 'dark'] as const).map((t) => (
                     <button
                       key={t}
                       type="button"
                       onClick={() => setTheme(t)}
-                      className={`w-8 h-8 rounded-full border-2 transition-all ${
-                        theme === t ? 'border-sky-500 scale-110 ring-2 ring-sky-200 dark:ring-sky-900/40' : 'border-transparent'
-                      } ${
-                        t === 'light' ? 'bg-white' : 
-                        t === 'dark' ? 'bg-slate-900' : 
-                        t === 'emerald' ? 'bg-emerald-500' : 
-                        t === 'rose' ? 'bg-rose-500' : 'bg-sky-500'
+                      className={`flex-1 flex items-center justify-center gap-2 p-3 rounded-xl border-2 transition-all ${
+                        theme === t 
+                          ? 'border-sky-500 bg-sky-50 dark:bg-sky-900/20 text-sky-700 dark:text-sky-300 ring-2 ring-sky-100 dark:ring-sky-900/40' 
+                          : 'border-border bg-card text-muted hover:bg-slate-50 dark:hover:bg-slate-800'
                       }`}
-                      title={t.charAt(0).toUpperCase() + t.slice(1)}
-                    />
+                    >
+                      {t === 'light' ? <Sparkles className="w-4 h-4" /> : <Lock className="w-4 h-4" />}
+                      <span className="font-bold capitalize">{t}</span>
+                    </button>
                   ))}
                 </div>
               </div>
@@ -2049,6 +2083,76 @@ const ProfileView: React.FC<{ user: UserProfile; setUser: (u: UserProfile) => vo
             </button>
           </div>
         </form>
+      </div>
+
+      <div className="pt-8 border-t border-border">
+        <div className="card bg-rose-50 dark:bg-rose-900/10 border-rose-100 dark:border-rose-900/20">
+          <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+            <div>
+              <h3 className="font-bold text-rose-800 dark:text-rose-400 flex items-center gap-2 mb-1">
+                <Trash2 className="w-5 h-5" />
+                Danger Zone
+              </h3>
+              <p className="text-sm text-rose-700 dark:text-rose-300">
+                Permanently delete your account and all associated data. This action cannot be undone.
+              </p>
+            </div>
+            <button
+              onClick={async () => {
+                const result = await Swal.fire({
+                  title: 'Are you absolutely sure?',
+                  text: "This will permanently delete your account and all your financial data. You won't be able to revert this!",
+                  icon: 'warning',
+                  showCancelButton: true,
+                  confirmButtonColor: '#ef4444',
+                  cancelButtonColor: '#64748b',
+                  confirmButtonText: 'Yes, delete everything',
+                  cancelButtonText: 'Cancel'
+                });
+
+                if (result.isConfirmed) {
+                  setLoading(true);
+                  try {
+                    const currentUser = auth.currentUser;
+                    if (!currentUser) throw new Error("No user logged in");
+
+                    // 1. Delete Firestore Data
+                    const collections = ['expenses', 'incomes', 'budgets'];
+                    for (const coll of collections) {
+                      const q = query(collection(db, coll), where('userId', '==', user.uid));
+                      const snapshot = await getDocs(q);
+                      for (const docSnap of snapshot.docs) {
+                        await deleteDoc(doc(db, coll, docSnap.id));
+                      }
+                    }
+                    await deleteDoc(doc(db, 'users', user.uid));
+
+                    // 2. Delete Auth User
+                    await deleteUser(currentUser);
+
+                    Swal.fire(
+                      'Deleted!',
+                      'Your account has been deleted.',
+                      'success'
+                    );
+                  } catch (error: any) {
+                    Swal.fire({
+                      icon: 'error',
+                      title: 'Deletion Failed',
+                      text: error.message,
+                      confirmButtonColor: '#ef4444'
+                    });
+                  } finally {
+                    setLoading(false);
+                  }
+                }
+              }}
+              className="btn-secondary border-rose-200 text-rose-600 hover:bg-rose-100 dark:hover:bg-rose-900/30 font-bold px-6"
+            >
+              Delete Account
+            </button>
+          </div>
+        </div>
       </div>
 
       <div className="card bg-amber-50 dark:bg-amber-900/10 border-amber-100 dark:border-amber-900/20">

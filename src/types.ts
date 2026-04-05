@@ -6,7 +6,7 @@ export interface UserProfile {
   createdAt: string;
   currency?: string;
   onboarded?: boolean;
-  theme?: 'light' | 'dark' | 'emerald' | 'rose' | 'sky';
+  theme?: 'light' | 'dark';
   showRecentTransactions?: boolean;
 }
 
@@ -65,6 +65,7 @@ export const CATEGORIES = [
   'Education',
   'Gifts & Donations',
   'Investments',
+  'Debt',
   'Others'
 ];
 
