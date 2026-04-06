@@ -6,11 +6,21 @@ import './index.css';
 // Suppress environment-related errors from browser extensions (e.g., MetaMask)
 // these occur because extensions try to inject properties into the sandboxed preview window.
 if (typeof window !== 'undefined') {
-  const suppressKeywords = ['ethereum', 'property descriptor', 'proxy', 'accessors', 'invalid property descriptor', 'cannot set property ethereum'];
+  const suppressKeywords = [
+    'ethereum', 
+    'property descriptor', 
+    'proxy', 
+    'accessors', 
+    'invalid property descriptor', 
+    'cannot set property ethereum',
+    'failed to assign ethereum proxy'
+  ];
   
-  // Aggressively suppress console.error
+  // Aggressively suppress console.error and console.warn
   const originalError = console.error;
-  console.error = (...args: any[]) => {
+  const originalWarn = console.warn;
+  
+  const shouldSuppress = (args: any[]) => {
     const message = args.map(arg => {
       try {
         if (typeof arg === 'string') return arg;
@@ -19,11 +29,17 @@ if (typeof window !== 'undefined') {
         return String(arg);
       }
     }).join(' ');
-    
-    if (suppressKeywords.some(keyword => message.toLowerCase().includes(keyword))) {
-      return;
-    }
+    return suppressKeywords.some(keyword => message.toLowerCase().includes(keyword));
+  };
+
+  console.error = (...args: any[]) => {
+    if (shouldSuppress(args)) return;
     originalError.apply(console, args);
+  };
+
+  console.warn = (...args: any[]) => {
+    if (shouldSuppress(args)) return;
+    originalWarn.apply(console, args);
   };
 
   // Catch unhandled errors and rejections
@@ -49,8 +65,16 @@ if (typeof window !== 'undefined') {
   // Aggressively override Object.defineProperty to prevent the error from being thrown
   // by browser extensions that pass invalid descriptors.
   const originalDefineProperty = Object.defineProperty;
-  Object.defineProperty = function(obj, prop, descriptor) {
+  Object.defineProperty = function(obj: any, prop: string | symbol, descriptor: PropertyDescriptor) {
     try {
+      // Check for invalid descriptor (cannot have both accessors and value/writable)
+      if (descriptor && (descriptor.get || descriptor.set) && ('value' in descriptor || 'writable' in descriptor)) {
+        // Fix the descriptor by preferring accessors
+        const fixedDescriptor = { ...descriptor };
+        delete (fixedDescriptor as any).value;
+        delete (fixedDescriptor as any).writable;
+        return originalDefineProperty.call(this, obj, prop, fixedDescriptor);
+      }
       return originalDefineProperty.call(this, obj, prop, descriptor);
     } catch (e: any) {
       const message = e?.message || String(e);
@@ -76,6 +100,7 @@ if (typeof window !== 'undefined') {
   } as any;
 
   // Pre-emptively define ethereum to prevent "only a getter" errors
+  // We use a try-catch because the property might be non-configurable
   try {
     let eth: any = undefined;
     originalDefineProperty.call(Object, window, 'ethereum', {
@@ -85,8 +110,7 @@ if (typeof window !== 'undefined') {
       enumerable: true
     });
   } catch (e) {
-    // If it fails, it's likely already defined as non-configurable
-    // We try to at least make it writable if possible, but usually we can't if it's non-configurable
+    // If it fails, we try to at least suppress the error if something else tries to define it
   }
 }
 
