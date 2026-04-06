@@ -336,14 +336,14 @@ const Sidebar: React.FC<{
               onClick={() => setActiveTab(item.id)}
               className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${
                 activeTab === item.id 
-                  ? 'bg-sky-50 dark:bg-sky-900/20 text-sky-600 font-medium' 
-                  : 'text-muted hover:bg-slate-50 dark:hover:bg-slate-800/50'
+                  ? 'bg-sky-100 dark:bg-sky-900 text-sky-700 dark:text-sky-300 font-bold border border-sky-200 dark:border-sky-800' 
+                  : 'text-muted hover:bg-slate-100 dark:hover:bg-slate-800'
               }`}
             >
               <item.icon className="w-5 h-5" />
               <span className="flex-1 text-left">{item.label}</span>
               {item.badge && (
-                <span className="text-[10px] font-bold px-1.5 py-0.5 bg-sky-100 dark:bg-sky-900/40 text-sky-600 dark:text-sky-400 rounded-md border border-sky-200 dark:border-sky-800">
+                <span className="text-[10px] font-bold px-1.5 py-0.5 bg-sky-100 dark:bg-sky-800 text-sky-700 dark:text-sky-200 rounded-md border border-sky-200 dark:border-sky-700">
                   {item.badge}
                 </span>
               )}
@@ -389,7 +389,7 @@ const Sidebar: React.FC<{
       </aside>
 
       {/* Mobile Header */}
-      <header className="md:hidden flex items-center justify-between p-4 bg-card border-b border-border sticky top-0 z-40">
+      <header className="md:hidden flex items-center justify-between p-4 bg-[var(--card)] border-b border-border sticky top-0 z-50 shadow-sm">
         <div className="flex items-center gap-2">
           <Wallet className="w-6 h-6 text-sky-600" />
           <span className="font-bold text-lg tracking-tight text-primary">FINOVA</span>
@@ -421,7 +421,7 @@ const Sidebar: React.FC<{
       </header>
 
       {/* Mobile Bottom Nav */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-card border-t border-border px-2 py-1 flex justify-around items-center z-40">
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-[var(--card)] border-t border-border px-2 py-1 flex justify-around items-center z-50 shadow-[0_-4px_10px_rgba(0,0,0,0.05)] opacity-100">
         {navItems.map((item) => (
           <button
             key={item.id}
@@ -911,36 +911,6 @@ const Dashboard: React.FC<{
         </div>
       </header>
 
-      {/* Carry Over Info */}
-      {(prevClosingBalance !== 0 || prevOutstandingDebt > 0) && (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {prevClosingBalance !== 0 && (
-            <div className={`p-4 rounded-2xl border flex items-center gap-4 ${prevClosingBalance > 0 ? 'bg-emerald-50 border-emerald-100 dark:bg-emerald-900/10 dark:border-emerald-900/30' : 'bg-rose-50 border-rose-100 dark:bg-rose-900/10 dark:border-rose-900/30'}`}>
-              <div className={`w-10 h-10 rounded-full flex items-center justify-center ${prevClosingBalance > 0 ? 'bg-emerald-100 text-emerald-600' : 'bg-rose-100 text-rose-600'}`}>
-                <History className="w-5 h-5" />
-              </div>
-              <div>
-                <p className="text-xs font-bold text-muted uppercase tracking-wider">Previous Month Balance</p>
-                <p className={`text-lg font-bold ${prevClosingBalance > 0 ? 'text-emerald-700' : 'text-rose-700'}`}>
-                  {prevClosingBalance > 0 ? '+' : ''}{formatCurrency(prevClosingBalance)}
-                </p>
-              </div>
-            </div>
-          )}
-          {prevOutstandingDebt > 0 && (
-            <div className="p-4 rounded-2xl border border-amber-100 bg-amber-50 dark:bg-amber-900/10 dark:border-amber-900/30 flex items-center gap-4">
-              <div className="w-10 h-10 rounded-full bg-amber-100 text-amber-600 flex items-center justify-center">
-                <AlertCircle className="w-5 h-5" />
-              </div>
-              <div>
-                <p className="text-xs font-bold text-muted uppercase tracking-wider">Outstanding Debt Carried Over</p>
-                <p className="text-lg font-bold text-amber-700">{formatCurrency(prevOutstandingDebt)}</p>
-              </div>
-            </div>
-          )}
-        </div>
-      )}
-
       {alerts.length > 0 && (
         <div className="bg-red-50 dark:bg-red-900/10 border border-red-200 dark:border-red-900/30 rounded-xl p-4 space-y-2">
           <div className="flex items-center gap-2 text-red-700 dark:text-red-400 font-semibold">
@@ -958,21 +928,21 @@ const Dashboard: React.FC<{
       )}
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
-        <div className="card border-l-4 border-emerald-500">
+        <div className="card border-l-4 border-emerald-500 bg-card shadow-sm">
           <p className="text-xs font-medium text-muted uppercase tracking-wider">Monthly Income</p>
           <p className="text-xl md:text-2xl font-bold mt-1 text-emerald-600">+{formatCurrency(totalIncome)}</p>
         </div>
-        <div className="card border-l-4 border-rose-500">
+        <div className="card border-l-4 border-rose-500 bg-card shadow-sm">
           <p className="text-xs font-medium text-muted uppercase tracking-wider">Monthly Spent</p>
           <p className="text-xl md:text-2xl font-bold mt-1 text-rose-600">-{formatCurrency(totalSpent)}</p>
         </div>
-        <div className="card border-l-4 border-sky-500">
+        <div className="card border-l-4 border-sky-500 bg-card shadow-md">
           <p className="text-xs font-medium text-muted uppercase tracking-wider">Net Balance</p>
-          <p className={`text-xl md:text-2xl font-bold mt-1 ${totalIncome - totalSpent >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
-            {formatCurrency(totalIncome - totalSpent)}
+          <p className={`text-xl md:text-2xl font-bold mt-1 ${currentBalance >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
+            {formatCurrency(currentBalance)}
           </p>
         </div>
-        <div className="card border-l-4 border-amber-500">
+        <div className="card border-l-4 border-amber-500 bg-card shadow-sm">
           <p className="text-xs font-medium text-muted uppercase tracking-wider">Budget Status</p>
           <p className="text-xl md:text-2xl font-bold mt-1 text-primary">
             {totalBudget > 0 ? `${Math.round((totalSpent / totalBudget) * 100)}%` : 'N/A'}
@@ -981,7 +951,7 @@ const Dashboard: React.FC<{
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-8">
-        <div className="card bg-card border border-border">
+        <div className="card bg-card border border-border shadow-md">
           <h3 className="text-lg font-semibold mb-6 flex items-center gap-2 text-primary">
             <TrendingUp className="w-5 h-5 text-sky-500" />
             Spending vs Budget
@@ -1007,7 +977,7 @@ const Dashboard: React.FC<{
           </div>
         </div>
 
-        <div className="card bg-card border border-border">
+        <div className="card bg-card border border-border shadow-md">
           <h3 className="text-lg font-semibold mb-6 flex items-center gap-2 text-primary">
             <PieIcon className="w-5 h-5 text-emerald-500" />
             Expense Distribution
@@ -1045,7 +1015,7 @@ const Dashboard: React.FC<{
       {/* Recent Transactions & Motivation */}
       <div className="space-y-6 md:space-y-8">
         {showRecentTransactions && (
-          <div className="card bg-card border border-border">
+          <div className="card bg-card border border-border shadow-md">
             <div className="flex items-center justify-between mb-6">
               <h3 className="text-lg font-semibold flex items-center gap-2 text-primary">
                 <FileText className="w-5 h-5 text-muted" />
@@ -1070,7 +1040,7 @@ const Dashboard: React.FC<{
                 <tbody className="divide-y divide-border">
                   {recentTransactions.length > 0 ? (
                     recentTransactions.slice(0, isRecentExpanded ? 10 : 5).map((tx: any) => (
-                      <tr key={tx.id} className="group hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
+                      <tr key={tx.id} className="group hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
                         <td className="py-4 text-sm text-muted">
                           {format(new Date(tx.date), 'MMM d')}
                         </td>
@@ -1298,7 +1268,7 @@ const ExpensesView: React.FC<{
 
       <div className="card p-0 overflow-hidden overflow-x-auto">
         <table className="w-full text-left min-w-[600px]">
-          <thead className="bg-slate-50 dark:bg-slate-800/50 border-b border-border">
+          <thead className="bg-slate-100 dark:bg-slate-800 border-b border-border">
             <tr>
               <th className="px-6 py-4 text-sm font-semibold text-muted">Date</th>
               <th className="px-6 py-4 text-sm font-semibold text-muted">Description</th>
@@ -1450,7 +1420,7 @@ const IncomeView: React.FC<{
 
       <div className="card p-0 overflow-hidden overflow-x-auto">
         <table className="w-full text-left min-w-[600px]">
-          <thead className="bg-slate-50 dark:bg-slate-800/50 border-b border-border">
+          <thead className="bg-slate-100 dark:bg-slate-800 border-b border-border">
             <tr>
               <th className="px-6 py-4 text-sm font-semibold text-muted">Date</th>
               <th className="px-6 py-4 text-sm font-semibold text-muted">Description</th>
@@ -1761,7 +1731,7 @@ const AIAdviceView: React.FC<{ expenses: Expense[]; budgets: Budget[]; currencyC
           )}
         </div>
 
-        <form onSubmit={handleSendMessage} className="p-4 border-t border-border bg-slate-50/50 dark:bg-slate-900/50">
+        <form onSubmit={handleSendMessage} className="p-4 border-t border-border bg-slate-50 dark:bg-slate-900">
           <div className="flex gap-2">
             <input
               type="text"
@@ -2022,7 +1992,7 @@ const ProfileView: React.FC<{ user: UserProfile; setUser: (u: UserProfile) => vo
             </h3>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              <div className="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-900/50 rounded-2xl border border-border col-span-full">
+              <div className="flex items-center justify-between p-4 bg-slate-100 dark:bg-slate-900 rounded-2xl border border-border col-span-full">
                 <div className="space-y-1">
                   <p className="font-bold text-text-primary">Color Theme</p>
                   <p className="text-xs text-text-muted">Choose your preferred accent color.</p>
@@ -2046,7 +2016,7 @@ const ProfileView: React.FC<{ user: UserProfile; setUser: (u: UserProfile) => vo
                 </div>
               </div>
 
-              <div className="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-900/50 rounded-2xl border border-border">
+              <div className="flex items-center justify-between p-4 bg-slate-100 dark:bg-slate-900 rounded-2xl border border-border">
                 <div className="space-y-1">
                   <p className="font-bold text-text-primary">Recent Transactions</p>
                   <p className="text-xs text-text-muted">Show recent activity on the dashboard.</p>
