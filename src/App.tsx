@@ -313,8 +313,8 @@ const Sidebar: React.FC<{
 }> = ({ activeTab, setActiveTab, user, currency, setCurrency, onSignOut, totalSpent, totalIncome, formatCurrency }) => {
   const navItems = [
     { id: 'dashboard', icon: LayoutDashboard, label: 'Dashboard' },
-    { id: 'expenses', icon: TrendingUp, label: 'Expenses', badge: totalSpent > 0 ? formatCurrency(totalSpent) : null },
-    { id: 'income', icon: ArrowUpRight, label: 'Income', badge: totalIncome > 0 ? formatCurrency(totalIncome) : null },
+    { id: 'expenses', icon: TrendingUp, label: 'Expenses' },
+    { id: 'income', icon: ArrowUpRight, label: 'Income' },
     { id: 'budgets', icon: Wallet, label: 'Budgets' },
     { id: 'ai', icon: Sparkles, label: 'AI Advice' },
     { id: 'profile', icon: UserIcon, label: 'Profile' },
@@ -342,11 +342,6 @@ const Sidebar: React.FC<{
             >
               <item.icon className="w-5 h-5" />
               <span className="flex-1 text-left">{item.label}</span>
-              {item.badge && (
-                <span className="text-[10px] font-bold px-1.5 py-0.5 bg-sky-100 dark:bg-sky-800 text-sky-700 dark:text-sky-200 rounded-md border border-sky-200 dark:border-sky-700">
-                  {item.badge}
-                </span>
-              )}
             </button>
           ))}
         </nav>
