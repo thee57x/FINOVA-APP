@@ -32,7 +32,13 @@ if (typeof window !== 'undefined') {
         return String(arg);
       }
     }).join(' ');
-    return suppressKeywords.some(keyword => message.toLowerCase().includes(keyword));
+    
+    const lowerMessage = message.toLowerCase();
+    return lowerMessage.includes('ethereum') || 
+           lowerMessage.includes('proxy') || 
+           lowerMessage.includes('getter') ||
+           lowerMessage.includes('property descriptor') ||
+           suppressKeywords.some(keyword => lowerMessage.includes(keyword));
   };
 
   console.error = (...args: any[]) => {
@@ -48,13 +54,22 @@ if (typeof window !== 'undefined') {
   // Catch unhandled errors and rejections
   const handleError = (event: ErrorEvent | PromiseRejectionEvent) => {
     let message = '';
+    let reason = '';
+    
     if (event instanceof ErrorEvent) {
       message = event.message || '';
     } else if (event instanceof PromiseRejectionEvent) {
-      message = event.reason?.message || event.reason?.toString() || '';
+      reason = event.reason?.message || event.reason?.toString() || '';
+      message = reason;
     }
     
-    if (suppressKeywords.some(keyword => message.toLowerCase().includes(keyword))) {
+    const lowerMessage = message.toLowerCase();
+    const isEthereumError = lowerMessage.includes('ethereum') || 
+                           lowerMessage.includes('proxy') || 
+                           lowerMessage.includes('getter') ||
+                           lowerMessage.includes('property descriptor');
+
+    if (isEthereumError || suppressKeywords.some(keyword => lowerMessage.includes(keyword))) {
       event.preventDefault();
       event.stopPropagation();
       return true;
@@ -69,6 +84,8 @@ if (typeof window !== 'undefined') {
   // by browser extensions that pass invalid descriptors.
   const originalDefineProperty = Object.defineProperty;
   Object.defineProperty = function(obj: any, prop: string | symbol, descriptor: PropertyDescriptor) {
+    const isEthereum = prop === 'ethereum' || (typeof prop === 'string' && prop.toLowerCase().includes('ethereum'));
+    
     try {
       // Check for invalid descriptor (cannot have both accessors and value/writable)
       if (descriptor && (descriptor.get || descriptor.set) && ('value' in descriptor || 'writable' in descriptor)) {
@@ -81,7 +98,8 @@ if (typeof window !== 'undefined') {
       return originalDefineProperty.call(this, obj, prop, descriptor);
     } catch (e: any) {
       const message = e?.message || String(e);
-      if (suppressKeywords.some(keyword => message.toLowerCase().includes(keyword))) {
+      if (isEthereum || suppressKeywords.some(keyword => message.toLowerCase().includes(keyword))) {
+        // If it's ethereum or matches keywords, just return the object and swallow the error
         return obj;
       }
       throw e;

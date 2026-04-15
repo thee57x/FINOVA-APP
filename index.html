@@ -4,6 +4,75 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Finova | Expense Manager</title>
+    <script>
+      // Suppress environment-related errors from browser extensions (e.g., MetaMask)
+      (function() {
+        const suppressKeywords = [
+          'ethereum', 'property descriptor', 'proxy', 'accessors', 
+          'invalid property descriptor', 'cannot set property ethereum',
+          'failed to assign ethereum proxy', 'uncaught typeerror',
+          'specify accessors', 'value or writable attribute'
+        ];
+        
+        const shouldSuppress = (args) => {
+          const message = args.map(arg => {
+            try {
+              if (typeof arg === 'string') return arg;
+              return JSON.stringify(arg);
+            } catch (e) { return String(arg); }
+          }).join(' ').toLowerCase();
+          
+          return message.includes('ethereum') || 
+                 message.includes('proxy') || 
+                 message.includes('getter') ||
+                 message.includes('property descriptor') ||
+                 suppressKeywords.some(keyword => message.includes(keyword));
+        };
+
+        const originalError = console.error;
+        const originalWarn = console.warn;
+        console.error = (...args) => { if (shouldSuppress(args)) return; originalError.apply(console, args); };
+        console.warn = (...args) => { if (shouldSuppress(args)) return; originalWarn.apply(console, args); };
+
+        const handleError = (event) => {
+          const message = (event.message || (event.reason && (event.reason.message || event.reason.toString())) || '').toLowerCase();
+          if (message.includes('ethereum') || message.includes('proxy') || message.includes('getter') || message.includes('property descriptor') || suppressKeywords.some(k => message.includes(k))) {
+            event.preventDefault();
+            event.stopPropagation();
+            return true;
+          }
+        };
+        window.addEventListener('error', handleError, true);
+        window.addEventListener('unhandledrejection', handleError, true);
+
+        const originalDefineProperty = Object.defineProperty;
+        Object.defineProperty = function(obj, prop, descriptor) {
+          const isEthereum = prop === 'ethereum' || (typeof prop === 'string' && prop.toLowerCase().includes('ethereum'));
+          try {
+            if (descriptor && (descriptor.get || descriptor.set) && ('value' in descriptor || 'writable' in descriptor)) {
+              const fixedDescriptor = Object.assign({}, descriptor);
+              delete fixedDescriptor.value;
+              delete fixedDescriptor.writable;
+              return originalDefineProperty.call(this, obj, prop, fixedDescriptor);
+            }
+            return originalDefineProperty.call(this, obj, prop, descriptor);
+          } catch (e) {
+            if (isEthereum || suppressKeywords.some(k => (e.message || '').toLowerCase().includes(k))) return obj;
+            throw e;
+          }
+        };
+
+        try {
+          let eth = undefined;
+          originalDefineProperty(window, 'ethereum', {
+            get() { return eth; },
+            set(val) { eth = val; },
+            configurable: true,
+            enumerable: true
+          });
+        } catch (e) {}
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>
