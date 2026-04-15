@@ -13,7 +13,10 @@ if (typeof window !== 'undefined') {
     'accessors', 
     'invalid property descriptor', 
     'cannot set property ethereum',
-    'failed to assign ethereum proxy'
+    'failed to assign ethereum proxy',
+    'uncaught typeerror',
+    'specify accessors',
+    'value or writable attribute'
   ];
   
   // Aggressively suppress console.error and console.warn
@@ -102,6 +105,13 @@ if (typeof window !== 'undefined') {
   // Pre-emptively define ethereum to prevent "only a getter" errors
   // We use a try-catch because the property might be non-configurable
   try {
+    // Try to delete it first if it exists and is configurable
+    try {
+      delete (window as any).ethereum;
+    } catch (e) {
+      // Ignore
+    }
+
     let eth: any = undefined;
     originalDefineProperty.call(Object, window, 'ethereum', {
       get() { return eth; },
@@ -110,7 +120,9 @@ if (typeof window !== 'undefined') {
       enumerable: true
     });
   } catch (e) {
-    // If it fails, we try to at least suppress the error if something else tries to define it
+    // If it fails, it's likely already defined as non-configurable by an extension
+    // We can't do much about the "only a getter" error on assignment then,
+    // but our console.error suppression and error listeners should handle it.
   }
 }
 
