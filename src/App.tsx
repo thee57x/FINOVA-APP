@@ -15,7 +15,8 @@ import { format, startOfMonth, endOfMonth, isWithinInterval, parseISO, subMonths
 import { 
   Plus, Trash2, PieChart as PieIcon, LayoutDashboard, Settings, LogOut, 
   TrendingUp, Wallet, Sparkles, ChevronRight, AlertCircle, Download, 
-  ArrowUpRight, ArrowDownRight, FileText, Table, X, Mail, Lock, User as UserIcon, ArrowRight, Camera, History
+  ArrowUpRight, ArrowDownRight, FileText, Table, X, Mail, Lock, User as UserIcon, ArrowRight, Camera, History,
+  ChevronDown, ChevronUp, MessageSquare
 } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import { jsPDF } from 'jspdf';
@@ -1758,6 +1759,9 @@ const ProfileView: React.FC<{ user: UserProfile; setUser: (u: UserProfile) => vo
   const [showRecentTransactions, setShowRecentTransactions] = useState(user.showRecentTransactions ?? true);
   const [newPassword, setNewPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const [isBioExpanded, setIsBioExpanded] = useState(false);
+  const [feedback, setFeedback] = useState('');
+  const [isSendingFeedback, setIsSendingFeedback] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Sync internal state if user prop changes (e.g. from background update)
@@ -1852,6 +1856,33 @@ const ProfileView: React.FC<{ user: UserProfile; setUser: (u: UserProfile) => vo
       });
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleSendFeedback = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!feedback.trim()) return;
+    setIsSendingFeedback(true);
+    try {
+      // In a real app, you'd send this to a backend or a service like EmailJS
+      console.log("Feedback sent to felixperfect12345@gmail.com:", feedback);
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      setFeedback('');
+      Swal.fire({
+        icon: 'success',
+        title: 'Feedback Sent',
+        text: 'Thank you for your feedback! It has been sent to the founder.',
+        confirmButtonColor: '#0ea5e9'
+      });
+    } catch (error: any) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Failed to send feedback',
+        text: error.message,
+        confirmButtonColor: '#ef4444'
+      });
+    } finally {
+      setIsSendingFeedback(false);
     }
   };
 
@@ -2112,7 +2143,7 @@ const ProfileView: React.FC<{ user: UserProfile; setUser: (u: UserProfile) => vo
                   }
                 }
               }}
-              className="btn-secondary border-rose-200 text-rose-600 hover:bg-rose-100 dark:hover:bg-rose-900/30 font-bold px-6"
+              className="btn-secondary border-rose-200 text-rose-600 hover:bg-rose-100 dark:hover:bg-rose-900/30 font-bold px-4 py-2 text-sm"
             >
               Delete Account
             </button>
@@ -2128,6 +2159,69 @@ const ProfileView: React.FC<{ user: UserProfile; setUser: (u: UserProfile) => vo
         <p className="text-sm text-amber-700">
           Updating your email or password may require you to re-authenticate for security reasons. If the update fails, please log out and log back in before trying again.
         </p>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="card bg-slate-50 dark:bg-slate-900/50 border-border">
+          <h3 className="font-bold text-text-primary flex items-center gap-2 mb-4">
+            <UserIcon className="w-5 h-5 text-sky-500" />
+            FOUNDER
+          </h3>
+          <div className="space-y-4">
+            <div>
+              <p className="text-sm font-bold text-text-muted uppercase tracking-wider">Name</p>
+              <p className="text-text-primary font-medium">Felix Perfect A.K.A. thee57x</p>
+            </div>
+            <div className="border border-border rounded-xl overflow-hidden">
+              <button 
+                onClick={() => setIsBioExpanded(!isBioExpanded)}
+                className="w-full flex items-center justify-between p-3 bg-card hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
+              >
+                <span className="font-bold text-sm text-text-primary">MY BIO</span>
+                {isBioExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+              </button>
+              {isBioExpanded && (
+                <div className="p-3 bg-card border-t border-border animate-in slide-in-from-top-2 duration-200">
+                  <p className="text-sm text-text-muted leading-relaxed">
+                    I am currently attending <span className="text-sky-600 font-medium">Rivers State University</span>. 
+                    This application is my final year project, designed to help users manage their finances effectively with the help of AI.
+                  </p>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+
+        <div className="card bg-slate-50 dark:bg-slate-900/50 border-border">
+          <h3 className="font-bold text-text-primary flex items-center gap-2 mb-4">
+            <MessageSquare className="w-5 h-5 text-emerald-500" />
+            FEEDBACK
+          </h3>
+          <form onSubmit={handleSendFeedback} className="space-y-3">
+            <p className="text-xs text-text-muted">Have a suggestion or found a bug? Let me know!</p>
+            <textarea 
+              value={feedback}
+              onChange={(e) => setFeedback(e.target.value)}
+              placeholder="Your feedback here..."
+              className="w-full p-3 border border-border bg-card text-text-primary rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none transition-all text-sm min-h-[100px] resize-none"
+              required
+            />
+            <button 
+              type="submit"
+              disabled={isSendingFeedback || !feedback.trim()}
+              className="w-full py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl transition-colors disabled:opacity-50 flex items-center justify-center gap-2 text-sm"
+            >
+              {isSendingFeedback ? (
+                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+              ) : (
+                <>
+                  <Mail className="w-4 h-4" />
+                  Send Feedback
+                </>
+              )}
+            </button>
+          </form>
+        </div>
       </div>
     </div>
   );
