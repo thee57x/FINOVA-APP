@@ -1,44 +1,49 @@
 <!doctype html>
 <html lang="en">
   <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Finova | Expense Manager</title>
     <script>
-      // Suppress environment-related errors from browser extensions (e.g., MetaMask)
+      // Aggressively suppress environment-related errors from browser extensions (e.g., MetaMask)
       (function() {
         const suppressKeywords = [
-          'ethereum', 'property descriptor', 'proxy', 'accessors', 
-          'invalid property descriptor', 'cannot set property ethereum',
-          'failed to assign ethereum proxy', 'uncaught typeerror',
-          'specify accessors', 'value or writable attribute'
+          'ethereum', 'metamask', 'web3', 'wallet', 'proxy', 'getter', 
+          'property descriptor', 'accessors', 'invalid property descriptor',
+          'cannot set property ethereum', 'failed to assign ethereum proxy',
+          'uncaught typeerror', 'specify accessors', 'value or writable attribute',
+          'failed to connect to metamask', 'script error.'
         ];
         
         const shouldSuppress = (args) => {
           const message = args.map(arg => {
             try {
               if (typeof arg === 'string') return arg;
-              return JSON.stringify(arg);
+              if (arg instanceof Error) return arg.message + ' ' + arg.stack;
+              if (typeof arg === 'object' && arg !== null) {
+                return (arg.message || arg.name || '') + ' ' + JSON.stringify(arg);
+              }
+              return String(arg);
             } catch (e) { return String(arg); }
           }).join(' ').toLowerCase();
           
-          return message.includes('ethereum') || 
-                 message.includes('proxy') || 
-                 message.includes('getter') ||
-                 message.includes('property descriptor') ||
-                 suppressKeywords.some(keyword => message.includes(keyword));
+          return suppressKeywords.some(keyword => message.includes(keyword));
         };
 
-        const originalError = console.error;
-        const originalWarn = console.warn;
-        console.error = (...args) => { if (shouldSuppress(args)) return; originalError.apply(console, args); };
-        console.warn = (...args) => { if (shouldSuppress(args)) return; originalWarn.apply(console, args); };
+        const consoleMethods = ['error', 'warn', 'log', 'info', 'debug', 'trace', 'dir'];
+        consoleMethods.forEach(method => {
+          const original = console[method];
+          try {
+            console[method] = (...args) => {
+              if (shouldSuppress(args)) return;
+              original.apply(console, args);
+            };
+          } catch (e) {}
+        });
 
         const handleError = (event) => {
           const message = (event.message || (event.reason && (event.reason.message || event.reason.toString())) || '').toLowerCase();
-          if (message.includes('ethereum') || message.includes('proxy') || message.includes('getter') || message.includes('property descriptor') || suppressKeywords.some(k => message.includes(k))) {
+          if (suppressKeywords.some(k => message.includes(k))) {
             event.preventDefault();
             event.stopPropagation();
+            if (event.stopImmediatePropagation) event.stopImmediatePropagation();
             return true;
           }
         };
@@ -47,7 +52,8 @@
 
         const originalDefineProperty = Object.defineProperty;
         Object.defineProperty = function(obj, prop, descriptor) {
-          const isEthereum = prop === 'ethereum' || (typeof prop === 'string' && prop.toLowerCase().includes('ethereum'));
+          const propStr = String(prop).toLowerCase();
+          const isWeb3Related = propStr.includes('ethereum') || propStr.includes('web3') || propStr.includes('metamask');
           try {
             if (descriptor && (descriptor.get || descriptor.set) && ('value' in descriptor || 'writable' in descriptor)) {
               const fixedDescriptor = Object.assign({}, descriptor);
@@ -57,13 +63,68 @@
             }
             return originalDefineProperty.call(this, obj, prop, descriptor);
           } catch (e) {
-            if (isEthereum || suppressKeywords.some(k => (e.message || '').toLowerCase().includes(k))) return obj;
+            if (isWeb3Related || suppressKeywords.some(k => (e.message || '').toLowerCase().includes(k))) return obj;
             throw e;
           }
         };
 
+        // Override XHR to block extension calls
+        const originalXHR = window.XMLHttpRequest;
+        window.XMLHttpRequest = function() {
+          const xhr = new originalXHR();
+          const originalOpen = xhr.open;
+          xhr.open = function(method, url) {
+            if (typeof url === 'string' && suppressKeywords.some(k => url.toLowerCase().includes(k))) {
+              this.send = function() { console.debug('Blocked extension XHR'); };
+              return;
+            }
+            return originalOpen.apply(this, arguments);
+          };
+          return xhr;
+        };
+
+        const originalFetch = window.fetch;
         try {
-          let eth = undefined;
+          window.fetch = function(input, init) {
+            const url = typeof input === 'string' ? input : (input && input.url ? input.url : '');
+            if (typeof url === 'string' && suppressKeywords.some(k => url.toLowerCase().includes(k))) {
+              return Promise.reject(new Error('Suppressed extension fetch'));
+            }
+            return originalFetch.apply(this, arguments);
+          };
+        } catch (e) {}
+
+        const originalAlert = window.alert;
+        try {
+          window.alert = function(msg) {
+            if (typeof msg === 'string' && suppressKeywords.some(k => msg.toLowerCase().includes(k))) return;
+            return originalAlert.apply(this, arguments);
+          };
+        } catch (e) {}
+
+        const originalOpen = window.open;
+        try {
+          window.open = function(url) {
+            if (typeof url === 'string' && suppressKeywords.some(k => url.toLowerCase().includes(k))) return null;
+            return originalOpen.apply(this, arguments);
+          };
+        } catch (e) {}
+
+        try {
+          const noop = () => {};
+          const dummyEth = {
+            isMetaMask: true,
+            request: async () => null,
+            on: noop,
+            removeListener: noop,
+            send: noop,
+            enable: async () => [],
+            isConnected: () => false,
+            selectedAddress: null,
+            networkVersion: null,
+            chainId: null
+          };
+          let eth = dummyEth;
           originalDefineProperty(window, 'ethereum', {
             get() { return eth; },
             set(val) { eth = val; },
@@ -73,7 +134,7 @@
         } catch (e) {}
       })();
     </script>
-  </head>
+    <meta charset="UTF-8" />
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
