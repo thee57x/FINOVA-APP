@@ -136,9 +136,9 @@ const Auth: React.FC = () => {
         <div className="w-20 h-20 bg-sky-100 dark:bg-sky-900/30 rounded-2xl flex items-center justify-center mx-auto">
           <Wallet className="w-10 h-10 text-sky-600" />
         </div>
-        <h1 className="text-3xl font-bold tracking-tight text-text-primary">FINOVA</h1>
+        <h1 className="text-3xl font-bold tracking-tight text-text-primary">57X BUDGET APP</h1>
         <p className="text-text-muted">
-          {isForgot ? 'Reset your password' : isLogin ? 'Welcome back! Log in to manage your finances.' : 'Start your financial journey with FINOVA.'}
+          {isForgot ? 'Reset your password' : isLogin ? 'Welcome back! Log in to manage your finances.' : 'Start your financial journey with 57X BUDGET APP.'}
         </p>
         
         <form onSubmit={handleAuth} className="space-y-4 text-left">
@@ -242,7 +242,7 @@ const Onboarding: React.FC<{ onComplete: () => void }> = ({ onComplete }) => {
 
   const steps = [
     {
-      title: "Welcome to FINOVA",
+      title: "Welcome to 57X BUDGET APP",
       description: "Your personal AI-powered financial assistant. Let's get you set up in 3 easy steps.",
       icon: Sparkles,
       color: "text-sky-600 bg-sky-100"
@@ -327,7 +327,7 @@ const Sidebar: React.FC<{
       <aside className="hidden md:flex w-64 bg-card border-r border-border h-screen sticky top-0 flex-col p-4">
         <div className="flex items-center gap-2 mb-8 px-2">
           <Wallet className="w-8 h-8 text-sky-600" />
-          <span className="font-bold text-xl tracking-tight text-primary">FINOVA</span>
+          <span className="font-bold text-xl tracking-tight text-primary">57X BUDGET APP</span>
         </div>
         
         <nav className="flex-1 space-y-1">
@@ -388,7 +388,7 @@ const Sidebar: React.FC<{
       <header className="md:hidden flex items-center justify-between p-4 bg-[var(--card)] border-b border-border sticky top-0 z-50 shadow-sm">
         <div className="flex items-center gap-2">
           <Wallet className="w-6 h-6 text-sky-600" />
-          <span className="font-bold text-lg tracking-tight text-primary">FINOVA</span>
+          <span className="font-bold text-lg tracking-tight text-primary">57X BUDGET APP</span>
         </div>
         <div className="flex items-center gap-3">
           <select 
@@ -541,7 +541,7 @@ export default function App() {
       Swal.fire({
         icon: 'success',
         title: 'Ready to go!',
-        text: 'Your account is set up. Welcome to FINOVA!',
+        text: 'Your account is set up. Welcome to 57X BUDGET APP!',
         timer: 2000,
         showConfirmButton: false
       });
@@ -647,7 +647,7 @@ export default function App() {
   if (loading) return (
     <div className="flex flex-col items-center justify-center h-screen space-y-4 bg-bg">
       <div className="w-12 h-12 border-4 border-sky-600 border-t-transparent rounded-full animate-spin" />
-      <p className="text-text-muted font-medium animate-pulse">Initializing FINOVA...</p>
+      <p className="text-text-muted font-medium animate-pulse">Initializing 57X BUDGET APP...</p>
     </div>
   );
 
@@ -777,7 +777,7 @@ const Dashboard: React.FC<{
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement('a');
     link.href = URL.createObjectURL(blob);
-    link.setAttribute('download', `FINOVA_Report_${format(new Date(), 'yyyy-MM-dd')}.csv`);
+    link.setAttribute('download', `57X_BUDGET_APP_Report_${format(new Date(), 'yyyy-MM-dd')}.csv`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -787,7 +787,7 @@ const Dashboard: React.FC<{
     const doc = new jsPDF();
     doc.setFontSize(22);
     doc.setTextColor(14, 165, 233); // Sky-500
-    doc.text('FINOVA - Financial Report', 14, 20);
+    doc.text('57X BUDGET APP - Financial Report', 14, 20);
     
     doc.setFontSize(12);
     doc.setTextColor(100, 116, 139); // Slate-500
@@ -807,14 +807,14 @@ const Dashboard: React.FC<{
       headStyles: { fillColor: [14, 165, 233] }
     });
 
-    doc.save(`FINOVA_Report_${selectedYear}_${selectedMonth}.pdf`);
+    doc.save(`57X_BUDGET_APP_Report_${selectedYear}_${selectedMonth}.pdf`);
   };
 
   const exportHighlights = () => {
     const doc = new jsPDF();
     doc.setFontSize(22);
     doc.setTextColor(14, 165, 233); // Sky-500
-    doc.text('FINOVA Monthly Highlights', 14, 20);
+    doc.text('57X BUDGET APP Monthly Highlights', 14, 20);
     
     doc.setFontSize(12);
     doc.setTextColor(100, 116, 139); // Slate-500
@@ -853,7 +853,7 @@ const Dashboard: React.FC<{
       startY: (doc as any).lastAutoTable.finalY + 20,
     });
 
-    doc.save(`FINOVA_Highlights_${selectedYear}_${selectedMonth}.pdf`);
+    doc.save(`57X_BUDGET_APP_Highlights_${selectedYear}_${selectedMonth}.pdf`);
   };
 
   const recentTransactions = [
@@ -1682,7 +1682,7 @@ const AIAdviceView: React.FC<{ expenses: Expense[]; budgets: Budget[]; currencyC
           <Sparkles className="w-8 h-8 text-sky-500" />
           AI Financial Advisor
         </h1>
-        <p className="text-muted">Chat with Finova for personalized financial insights.</p>
+        <p className="text-muted">Chat with 57X Budget App for personalized financial insights.</p>
       </header>
 
       <div className="flex-1 overflow-hidden flex flex-col card p-0 bg-card border border-border shadow-sm">

@@ -49,7 +49,7 @@ export async function getChatResponse(messages: { role: 'user' | 'assistant', co
       model: "gemini-3-flash-preview",
       contents,
       config: {
-        systemInstruction: `You are Finova, a helpful financial advisor. 
+        systemInstruction: `You are 57X Budget App, a helpful financial advisor. 
         The user's current monthly expenses are: ${JSON.stringify(expenses)}. 
         Their budget limits are: ${JSON.stringify(budgets)}. 
         Their preferred currency is ${currencyCode} (${currencySymbol}). 
